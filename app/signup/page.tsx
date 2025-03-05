@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Eye, ArrowRight, Apple, GraduationCap, School } from "lucide-react";
+import { Eye, ArrowRight, GraduationCap, School } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
@@ -33,7 +33,6 @@ function App() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -41,7 +40,9 @@ function App() {
     });
     const data = await res.json();
     if (data.user) {
-      // Route user based on role
+      document.cookie = `token=${data.id}; path=/`;
+      sessionStorage.setItem("role", data.user.role);
+      sessionStorage.setItem("user", JSON.stringify(data.user));
       if (data.user.role === "TEACHER") {
         router.push("/teacher/dashboard");
       } else {

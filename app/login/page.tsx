@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Eye, ArrowRight, Apple } from "lucide-react";
+import { Eye } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -35,9 +35,11 @@ function App() {
       body: JSON.stringify(formData),
     });
     const data = await res.json();
-    sessionStorage.setItem("token", data.id);
+
     if (data.user) {
-      //store dummy token in session
+      document.cookie = `token=${data.id}; path=/`;
+      sessionStorage.setItem("role", data.user.role);
+      sessionStorage.setItem("user", JSON.stringify(data.user));
       // Route user based on role
       if (data.user.role === "TEACHER") {
         router.push("/teacher/dashboard");
