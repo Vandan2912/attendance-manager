@@ -30,10 +30,16 @@ export async function POST(request: Request) {
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user.toObject();
 
+    // Redirect students to photo capture page
+    if (role === "STUDENT") {
+      return NextResponse.redirect("/student/photo");
+    }
+
     return NextResponse.json(
       {
         message: "User registered successfully",
         user: userWithoutPassword,
+        id: user._id,
       },
       { status: 201 }
     );

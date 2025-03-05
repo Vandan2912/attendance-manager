@@ -9,7 +9,9 @@ export async function POST(request: Request) {
     await dbConnect();
     const { email, password } = await request.json();
 
-    const user: { password: string } | null = await User.findOne({ email }).lean<{ password: string }>().exec();
+    const user: { _id: string; password: string } | null = await User.findOne({ email })
+      .lean<{ _id: string; password: string }>()
+      .exec();
     if (!user) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
@@ -21,7 +23,7 @@ export async function POST(request: Request) {
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
-    return NextResponse.json({ user: userWithoutPassword });
+    return NextResponse.json({ user: userWithoutPassword, id: user._id });
   } catch (error) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }

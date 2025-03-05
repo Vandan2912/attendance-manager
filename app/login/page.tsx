@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 interface FormData {
-  name: string;
   email: string;
   password: string;
   role: "STUDENT" | "TEACHER";
@@ -15,7 +14,6 @@ function App() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<FormData>({
-    name: "",
     email: "",
     password: "",
     role: "STUDENT",
@@ -31,14 +29,15 @@ function App() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),
     });
     const data = await res.json();
+    sessionStorage.setItem("token", data.id);
     if (data.user) {
+      //store dummy token in session
       // Route user based on role
       if (data.user.role === "TEACHER") {
         router.push("/teacher/dashboard");
@@ -93,18 +92,6 @@ function App() {
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="flex gap-4">
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Full name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 rounded-lg bg-[#2A2A3C] text-white border-0 focus:ring-2 focus:ring-purple-500"
-                  required
-                />
-              </div>
-
               <input
                 type="email"
                 name="email"
