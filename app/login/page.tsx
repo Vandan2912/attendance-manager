@@ -57,7 +57,7 @@ function App() {
         {/* Left Side - Image Section */}
         <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-b from-purple-600 to-purple-900 p-12 flex-col justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-white">AMS</h2>
+            {/* <h2 className="text-2xl font-bold text-white">AMS</h2> */}
             {/* <button className="mt-4 px-4 py-2 bg-white/20 rounded-full text-white text-sm flex items-center gap-2">
               Back to website <ArrowRight className="w-4 h-4" />
             </button> */}

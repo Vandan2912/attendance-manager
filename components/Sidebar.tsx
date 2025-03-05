@@ -12,7 +12,6 @@ import {
   Users,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { url } from "inspector";
 
 type UserRole = "STUDENT" | "TEACHER";
 
@@ -38,6 +37,21 @@ const Sidebar = () => {
           { icon: MessageSquare, label: "Announcements", id: "announcements", url: "/student/announcements" },
           { icon: User, label: "Profile", id: "profile", url: "/student/profile" },
         ];
+
+  const handleLogout = () => {
+    // Clear session storage
+    sessionStorage.clear();
+
+    // Clear cookies
+    document.cookie.split(";").forEach((cookie) => {
+      const eqPos = cookie.indexOf("=");
+      const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+    });
+
+    // Redirect to login page
+    router.push("/login");
+  };
 
   useEffect(() => {
     const storedRole = sessionStorage.getItem("role") as UserRole;
@@ -80,7 +94,10 @@ const Sidebar = () => {
       </div>
 
       <div className="absolute bottom-0 w-64 p-4 border-t">
-        <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+        <button
+          className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+          onClick={handleLogout}
+        >
           <LogOut className="w-5 h-5" />
           Logout
         </button>
