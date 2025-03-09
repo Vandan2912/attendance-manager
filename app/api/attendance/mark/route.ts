@@ -44,10 +44,11 @@ import { NextResponse } from "next/server";
 import { spawn } from "child_process";
 import fs from "fs";
 import path from "path";
+import { User } from "@/model/User";
 
 export async function POST(request: Request) {
   try {
-    const { image } = await request.json();
+    const { image, id } = await request.json();
 
     console.log(`Attendance marked for started`);
 
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
 
     // Call the Python script with the file path
     const recognizedStudent = await new Promise<string | null>((resolve, reject) => {
-      const python = spawn("python", ["scripts/face_recognition_file.py", filePath]);
+      const python = spawn("python", ["scripts/face_recognition_file.py", filePath, id]);
       let dataString = "";
 
       python.stdout.on("data", (data) => {
@@ -80,7 +81,26 @@ export async function POST(request: Request) {
     });
 
     console.log(`Attendance marked for ${recognizedStudent}`);
-    return NextResponse.json({ success: true, studentId: recognizedStudent });
+
+    let matched = false;
+    let studentName = "";
+    if (recognizedStudent) {
+      // Extract the ID using a Regular Expression
+      const match = recognizedStudent.match(/Attendance Marked for: ([0-9a-fA-F]+)/);
+
+      // Check if a match is found
+      if (match) {
+        const studentId = match[1];
+        console.log("Student ID:", studentId);
+        const studentData = await User.findOne({ _id: studentId });
+        studentName = studentData?.name || "";
+        matched = true;
+      } else {
+        console.log("No Student ID found.");
+      }
+    }
+
+    return NextResponse.json({ success: true, recognizedStudent, matched, studentName });
   } catch (error) {
     console.error("Error marking attendance:", error);
     return NextResponse.json({ success: false, error });

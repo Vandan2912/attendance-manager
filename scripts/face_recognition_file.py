@@ -54,6 +54,7 @@ def load_known_faces():
 def is_attendance_already_marked(student_id):
     today_date = datetime.now().strftime("%Y-%m-%d")
     existing_record = collection.find_one({
+        "classId": classId,
         "studentId": student_id,
         "markedAt": {"$regex": today_date}
     })
@@ -100,7 +101,7 @@ def recognize_face(image_path):
 # ==============================
 # ✅ Function to Mark Attendance
 # ==============================
-def mark_attendance(student_id):
+def mark_attendance(student_id, classId):
     now = datetime.now()
     timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -111,6 +112,7 @@ def mark_attendance(student_id):
 
     # Save attendance to MongoDB
     record = {
+        "classId": classId,
         "studentId": student_id,
         "name": student_id.replace("_", " ").title(),
         "photo": f"student_photos/{student_id}.jpg",
@@ -136,6 +138,7 @@ if __name__ == "__main__":
 
     # Pass the unknown image path
     unknown_image_path = sys.argv[1]
+    classId = sys.argv[2]
 
     # Train and save data if not already trained
     known_faces = load_known_faces()
@@ -151,6 +154,6 @@ if __name__ == "__main__":
     # Perform face recognition
     student_id = recognize_face(unknown_image_path)
     if student_id:
-        mark_attendance(student_id)
+        mark_attendance(student_id, classId)
     else:
         print("[❌] No matching face found.")

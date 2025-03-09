@@ -1,9 +1,13 @@
+import { useParams } from "next/navigation";
 import React, { useRef, useState, useEffect } from "react";
+import { toast } from "react-toastify";
 
 const WebcamFeed = () => {
+  const { id } = useParams();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
 
+  console.log("id", id);
   useEffect(() => {
     const enableVideoStream = async () => {
       try {
@@ -49,14 +53,21 @@ const WebcamFeed = () => {
 
   const markAttendance = async (imageData: string) => {
     try {
-      const response = await fetch("/api/attendance/mark", {
+      const response: any = await fetch("/api/attendance/mark", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: imageData }),
+        body: JSON.stringify({ image: imageData, id }),
       });
+
+      // ✅ Parse the response to JSON
+      const data = await response.json();
 
       if (response.ok) {
         console.log("Attendance marked successfully");
+        console.log("response", response);
+        if (data?.matched) {
+          toast.success(`✅ Student: ${data.studentName} Attendance marked successfully`);
+        }
       } else {
         console.error("Failed to mark attendance", response);
       }
