@@ -1,6 +1,5 @@
 "use client";
 
-import { Session } from "inspector/promises";
 import React, { useRef, useState } from "react";
 import Webcam from "react-webcam";
 
@@ -25,10 +24,16 @@ const StudentWebcam: React.FC = () => {
 
     try {
       setUploading(true);
+      const user = sessionStorage.getItem("user");
+      let studentId = "";
+      if (user) {
+        const userObj = JSON.parse(user);
+        studentId = userObj._id;
+      }
       const response = await fetch("/api/student/photo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: imgSrc, studentId: sessionStorage.getItem("token") }),
+        body: JSON.stringify({ image: imgSrc, studentId: studentId }),
       });
 
       if (response.ok) {

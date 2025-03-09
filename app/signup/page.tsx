@@ -46,7 +46,7 @@ function App() {
       if (data.user.role === "TEACHER") {
         router.push("/teacher/dashboard");
       } else {
-        router.push("/student/dashboard");
+        router.push("/student/photo");
       }
     } else {
       console.log(data.error);

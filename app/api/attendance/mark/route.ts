@@ -1,17 +1,67 @@
-// app/api/attendance/mark/route.ts
+// import { NextResponse } from "next/server";
+// import { spawn } from "child_process";
+
+// export async function POST(request: Request) {
+//   try {
+//     const { image } = await request.json();
+
+//     console.log(`Attendance marked for startedddddddd`);
+
+//     // Call the Python script for face recognition
+//     const recognizedStudent = await new Promise<string | null>((resolve, reject) => {
+//       const python = spawn("python", ["scripts/face_recognition_file.py", image]);
+//       let dataString = "";
+
+//       python.stdout.on("data", (data) => {
+//         dataString += data.toString();
+//         console.log(` python.stdout : ${data}`);
+//       });
+
+//       python.stderr.on("data", (data) => {
+//         console.error("Python error:", data.toString());
+//       });
+
+//       python.on("close", () => {
+//         resolve(dataString.trim() || null);
+//       });
+//     });
+
+//     console.log(`Attendance marked for ${recognizedStudent}`);
+
+//     if (recognizedStudent) {
+//       // Mark attendance for the recognized student
+//       console.log(`Attendance marked for ${recognizedStudent}`);
+//       return NextResponse.json({ message: "Attendance marked successfully", recognizedStudent });
+//     } else {
+//       return NextResponse.json({ error: "No match found" }, { status: 400 });
+//     }
+//   } catch (error) {
+//     return NextResponse.json({ error: "Failed to mark attendance" }, { status: 500 });
+//   }
+// }
+
 import { NextResponse } from "next/server";
-import dbConnect from "@/lib/mongodb";
-import { Attendance } from "@/model/Attendance";
 import { spawn } from "child_process";
+import fs from "fs";
+import path from "path";
 
 export async function POST(request: Request) {
   try {
-    await dbConnect();
-    const { classId, studentId, imagePath } = await request.json();
+    const { image } = await request.json();
 
-    // Face recognition verification
+    console.log(`Attendance marked for started`);
+
+    // Decode base64 image
+    const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
+    const buffer = Buffer.from(base64Data, "base64");
+
+    // Save the image temporarily
+    const filePath = path.join("/tmp", `face_${Date.now()}.jpg`);
+    fs.writeFileSync(filePath, buffer);
+
+    // Call the Python script with the file path
     const recognizedStudent = await new Promise<string | null>((resolve, reject) => {
-      const python = spawn("python", ["scripts/face_recognition.py", imagePath]);
+      const python = spawn("python", ["scripts/face_recognition_file.py", filePath]);
       let dataString = "";
 
       python.stdout.on("data", (data) => {
@@ -23,23 +73,16 @@ export async function POST(request: Request) {
       });
 
       python.on("close", () => {
+        // Clean up the file after recognition
+        fs.unlinkSync(filePath);
         resolve(dataString.trim() || null);
       });
     });
 
-    if (recognizedStudent !== String(studentId)) {
-      return NextResponse.json({ error: "Face not recognized" }, { status: 400 });
-    }
-
-    const attendance = await Attendance.create({
-      classId,
-      studentId,
-      date: new Date(),
-      present: true,
-    });
-
-    return NextResponse.json({ attendance });
+    console.log(`Attendance marked for ${recognizedStudent}`);
+    return NextResponse.json({ success: true, studentId: recognizedStudent });
   } catch (error) {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    console.error("Error marking attendance:", error);
+    return NextResponse.json({ success: false, error });
   }
 }
