@@ -1,70 +1,127 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Calendar, Search, UserPlus, X, Trash2, Mail, Phone, Clock, XCircle } from "lucide-react";
+import { toast } from "react-toastify";
 
 interface Student {
-  id: string;
+  _id: string;
   name: string;
   email: string;
-  phone: string;
-  enrollmentDate: string;
-  status: "active" | "inactive";
-  attendanceRate: number;
-  lastAttendance: string;
-  enrolledClasses: string[];
+  createdAt: string;
+  role: string;
 }
 
 function App() {
+  const [Loading, setLoading] = useState(false);
+  const [students, setStudents] = useState<Student[]>([]);
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [showStudentDetailModal, setShowStudentDetailModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [selectedStudentClasses, setSelectedStudentClasses] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
 
-  // Mock student data
-  const students: Student[] = [
-    {
-      id: "1",
-      name: "Alice Johnson",
-      email: "alice@example.com",
-      phone: "+1 234-567-8901",
-      enrollmentDate: "2024-01-15",
-      status: "active",
-      attendanceRate: 92,
-      lastAttendance: "2024-03-11",
-      enrolledClasses: ["Advanced Mathematics", "Physics"],
-    },
-    {
-      id: "2",
-      name: "Bob Smith",
-      email: "bob@example.com",
-      phone: "+1 234-567-8902",
-      enrollmentDate: "2024-01-15",
-      status: "active",
-      attendanceRate: 68,
-      lastAttendance: "2024-03-10",
-      enrolledClasses: ["Computer Science"],
-    },
-    {
-      id: "3",
-      name: "Carol White",
-      email: "carol@example.com",
-      phone: "+1 234-567-8903",
-      enrollmentDate: "2024-01-20",
-      status: "inactive",
-      attendanceRate: 45,
-      lastAttendance: "2024-02-28",
-      enrolledClasses: ["Physics"],
-    },
-  ];
+  // // Mock student data
+  // const students: Student[] = [
+  //   {
+  //     id: "1",
+  //     name: "Alice Johnson",
+  //     email: "alice@example.com",
+  //     phone: "+1 234-567-8901",
+  //     enrollmentDate: "2024-01-15",
+  //     status: "active",
+  //     attendanceRate: 92,
+  //     lastAttendance: "2024-03-11",
+  //     enrolledClasses: ["Advanced Mathematics", "Physics"],
+  //   },
+  //   {
+  //     id: "2",
+  //     name: "Bob Smith",
+  //     email: "bob@example.com",
+  //     phone: "+1 234-567-8902",
+  //     enrollmentDate: "2024-01-15",
+  //     status: "active",
+  //     attendanceRate: 68,
+  //     lastAttendance: "2024-03-10",
+  //     enrolledClasses: ["Computer Science"],
+  //   },
+  //   {
+  //     id: "3",
+  //     name: "Carol White",
+  //     email: "carol@example.com",
+  //     phone: "+1 234-567-8903",
+  //     enrollmentDate: "2024-01-20",
+  //     status: "inactive",
+  //     attendanceRate: 45,
+  //     lastAttendance: "2024-02-28",
+  //     enrolledClasses: ["Physics"],
+  //   },
+  // ];
 
-  const filteredStudents = students.filter((student) => {
+  const filteredStudents = students?.filter((student) => {
     const matchesSearch =
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || student.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    return matchesSearch;
   });
+
+  const handleRemoveStudent = async (selectedClassId: string) => {
+    try {
+      const response = await fetch("/api/teacher/classes/remove-student", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ classId: selectedClassId, studentId: selectedStudent?._id }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        toast("Student removed from class successfully!");
+      } else {
+        throw new Error(data.error || "Failed to remove student");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    // Fetch student data from backend API
+    try {
+      setLoading(true);
+      async function fetchStudents() {
+        const response = await fetch("/api/student");
+        const data = await response.json();
+        console.log("datatata", data);
+        setStudents(data);
+      }
+      fetchStudents();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  async function fetchEnrolledClasses() {
+    try {
+      const response = await fetch(`/api/student/detail?studentId=${selectedStudent?._id}`);
+      const data = await response.json();
+      if (response.ok) {
+        setSelectedStudentClasses(data.classes);
+      } else {
+        console.error(data.error);
+      }
+    } catch (error) {
+      console.error("Error fetching enrolled classes:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+  useEffect(() => {
+    if (selectedStudent?._id) {
+      fetchEnrolledClasses();
+    }
+  }, [selectedStudent]);
 
   return (
     <div className="space-y-6 p-8">
@@ -114,15 +171,6 @@ function App() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Contact
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Attendance
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Classes
-                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
@@ -131,7 +179,7 @@ function App() {
             <tbody className="divide-y divide-gray-200">
               {filteredStudents.map((student) => (
                 <tr
-                  key={student.id}
+                  key={student._id}
                   className="hover:bg-gray-50 cursor-pointer"
                   onClick={() => {
                     setSelectedStudent(student);
@@ -147,46 +195,12 @@ function App() {
                       />
                       <div>
                         <div className="text-sm font-medium text-gray-900">{student.name}</div>
-                        <div className="text-sm text-gray-500">Enrolled: {student.enrollmentDate}</div>
+                        <div className="text-sm text-gray-500">Enrolled: {student.createdAt}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{student.email}</div>
-                    <div className="text-sm text-gray-500">{student.phone}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        student.status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {student.status.charAt(0).toUpperCase() + student.status.slice(1)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div
-                        className={`text-sm font-medium ${
-                          student.attendanceRate >= 85
-                            ? "text-green-600"
-                            : student.attendanceRate >= 75
-                            ? "text-yellow-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {student.attendanceRate}%
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-1">
-                      {student.enrolledClasses.map((className, index) => (
-                        <span key={index} className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded-full">
-                          {className}
-                        </span>
-                      ))}
-                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
@@ -213,7 +227,11 @@ function App() {
             <div className="flex items-center justify-between p-6 border-b">
               <h2 className="text-2xl font-bold">Student Details</h2>
               <button
-                onClick={() => setShowStudentDetailModal(false)}
+                onClick={() => {
+                  setShowStudentDetailModal(false);
+                  setSelectedStudentClasses([]);
+                  setSelectedStudent(null);
+                }}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <X className="w-6 h-6 text-gray-500" />
@@ -230,14 +248,14 @@ function App() {
                 />
                 <div>
                   <h3 className="text-xl font-semibold">{selectedStudent.name}</h3>
-                  <p className="text-gray-500">Student ID: {selectedStudent.id}</p>
-                  <span
+                  <p className="text-gray-500">Student ID: {selectedStudent._id}</p>
+                  {/* <span
                     className={`inline-block mt-2 px-3 py-1 text-sm font-medium rounded-full ${
                       selectedStudent.status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                     }`}
                   >
                     {selectedStudent.status.charAt(0).toUpperCase() + selectedStudent.status.slice(1)}
-                  </span>
+                  </span> */}
                 </div>
               </div>
 
@@ -250,39 +268,38 @@ function App() {
                       <span>{selectedStudent.email}</span>
                     </div>
                   </div>
-                  <div>
-                    <label className="text-sm text-gray-500">Phone</label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Phone className="w-5 h-5 text-gray-400" />
-                      <span>{selectedStudent.phone}</span>
-                    </div>
-                  </div>
                 </div>
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm text-gray-500">Enrollment Date</label>
                     <div className="flex items-center gap-2 mt-1">
                       <Clock className="w-5 h-5 text-gray-400" />
-                      <span>{selectedStudent.enrollmentDate}</span>
+                      <span>{selectedStudent.createdAt}</span>
                     </div>
                   </div>
-                  <div>
+                  {/* <div>
                     <label className="text-sm text-gray-500">Last Attendance</label>
                     <div className="flex items-center gap-2 mt-1">
                       <Calendar className="w-5 h-5 text-gray-400" />
                       <span>{selectedStudent.lastAttendance}</span>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </div>
 
               <div className="mb-6">
                 <h4 className="text-lg font-semibold mb-3">Enrolled Classes</h4>
                 <div className="grid grid-cols-1 gap-3">
-                  {selectedStudent.enrolledClasses.map((className, index) => (
+                  {selectedStudentClasses.map((className: any, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <span className="font-medium">{className}</span>
-                      <button className="text-red-600 hover:text-red-900">
+                      <span className="font-medium">{className.name}</span>
+                      <button
+                        className="text-red-600 hover:text-red-900"
+                        onClick={() => {
+                          handleRemoveStudent(className._id);
+                          fetchEnrolledClasses();
+                        }}
+                      >
                         <XCircle className="w-5 h-5" />
                       </button>
                     </div>
@@ -292,7 +309,11 @@ function App() {
 
               <div className="flex gap-4">
                 <button
-                  onClick={() => setShowStudentDetailModal(false)}
+                  onClick={() => {
+                    setShowStudentDetailModal(false);
+                    setSelectedStudentClasses([]);
+                    setSelectedStudent(null);
+                  }}
                   className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Close

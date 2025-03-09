@@ -20,6 +20,12 @@ const userSchema = new mongoose.Schema({
     enum: ["TEACHER", "STUDENT"],
     required: true,
   },
+  classes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Class",
+    },
+  ],
   faceData: {
     type: String,
   }, // Base64 encoded face recognition data

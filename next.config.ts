@@ -1,11 +1,28 @@
-import type { NextConfig } from "next";
+// const nextConfig: NextConfig = {
+//   /* config options here */
+//   eslint: {
+//     // dont check for eslink rules
+//     ignoreDuringBuilds: true,
+//   },
+// };
 
-const nextConfig: NextConfig = {
-  /* config options here */
+// export default nextConfig;
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   eslint: {
     // dont check for eslink rules
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    turbo: {
+      loaders: {
+        ".tsx": {
+          transpileOnly: false,
+        },
+      },
+    },
+  },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

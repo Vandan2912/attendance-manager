@@ -17,6 +17,22 @@ const classSchema = new mongoose.Schema({
       ref: "User",
     },
   ],
+  totalClasses: {
+    type: mongoose.Schema.Types.Number,
+    default: 0,
+  },
+  attendanceRate: {
+    type: mongoose.Schema.Types.Number,
+    default: 0,
+  },
+  lastAttendance: {
+    type: mongoose.Schema.Types.String,
+    default: "-",
+  },
+  attendedClasses: {
+    type: mongoose.Schema.Types.Number,
+    default: 0,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

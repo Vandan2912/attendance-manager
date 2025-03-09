@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import { Class } from "@/model/Class";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     await dbConnect();
-    // In a real application, retrieve the logged-in teacher's ID from the session or JWT.
-    // For demonstration purposes, we'll use a hardcoded teacher ID.
-    const teacherId = "64f2c7a4df9d9e9b9c9e9abc"; // Replace with dynamic session logic
+
+    // get some data from headers
+    const teacherId = request.headers.get("teacherId");
 
     // Find all classes created by the teacher.
     const classes = await Class.find({ teacherId }).lean();
@@ -22,5 +22,33 @@ export async function GET() {
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Failed to fetch classes" }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    await dbConnect();
+
+    const { name, teacherId, studentIds } = await request.json();
+
+    if (!name || !teacherId) {
+      return NextResponse.json({ error: "Class name and teacher ID are required" }, { status: 400 });
+    }
+
+    const newClass = await Class.create({
+      name,
+      teacherId,
+      students: studentIds || [],
+      createdAt: new Date(),
+      totalClasses: 0,
+      attendanceRate: 0,
+      lastAttendance: "",
+      attendedClasses: 0,
+    });
+
+    return NextResponse.json({ message: "Class created successfully", class: newClass });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Failed to create class" }, { status: 500 });
   }
 }
