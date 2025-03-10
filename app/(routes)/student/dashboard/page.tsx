@@ -68,7 +68,7 @@ function App() {
         }, []);
 
       // Sort the array by date (optional)
-      mergedAttendance.sort((a, b) => new Date(a.date) - new Date(b.date));
+      mergedAttendance.sort((a: any, b: any) => new Date(a.date) - new Date(b.date));
 
       console.log("values=", mergedAttendance);
       setheatmaparray(mergedAttendance ?? []);
