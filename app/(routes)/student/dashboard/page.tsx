@@ -58,7 +58,7 @@ function App() {
       const mergedAttendance = data.classes
         .flatMap((classItem: Class) => classItem.recentAttendanceRecords)
         .reduce((acc: any, record: any) => {
-          const existing = acc.find((item) => item.date === record.date);
+          const existing = acc.find((item: any) => item.date === record.date);
           if (existing) {
             existing.count++;
           } else {
