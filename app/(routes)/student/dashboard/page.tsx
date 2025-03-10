@@ -1,18 +1,25 @@
 // app/student/dashboard/page.tsx
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Calendar, ChevronRight, Users, Bell, AlertCircle } from "lucide-react";
 import CalendarHeatmap from "react-calendar-heatmap";
 import "react-calendar-heatmap/dist/styles.css";
+import { useRouter } from "next/navigation";
+import Loader from "@/components/Loader";
 
 interface Class {
-  id: string;
+  _id: string;
   name: string;
   teacher: string;
   totalClasses: number;
   attendedClasses: number;
   lastAttendance: string;
+  totalStudents?: number;
+  attendanceRate?: number;
+  description?: string;
+  recentAttendanceRecords: { _id: string }[];
+  // students?: Student[];
 }
 
 interface Announcement {
@@ -23,34 +30,66 @@ interface Announcement {
   author: string;
 }
 
+interface HeatMap {
+  date: string;
+  count: number;
+}
+
 function App() {
-  // Mock data
-  const classes: Class[] = [
-    {
-      id: "1",
-      name: "Advanced Mathematics",
-      teacher: "Dr. Smith",
-      totalClasses: 78,
-      attendedClasses: 50,
-      lastAttendance: "2024-03-10",
-    },
-    {
-      id: "2",
-      name: "Computer Science",
-      teacher: "Prof. Johnson",
-      totalClasses: 65,
-      attendedClasses: 60,
-      lastAttendance: "2024-03-11",
-    },
-    {
-      id: "3",
-      name: "Physics",
-      teacher: "Dr. Brown",
-      totalClasses: 70,
-      attendedClasses: 45,
-      lastAttendance: "2024-03-09",
-    },
-  ];
+  const router = useRouter();
+  const [Loading, setLoading] = useState(false);
+  const [classes, setClasses] = useState<Class[]>([]);
+  const [user, setUser] = useState<any>();
+  const [heatmaparray, setheatmaparray] = useState<HeatMap[]>([]);
+
+  const getClasses = async () => {
+    try {
+      setLoading(true);
+      const user = sessionStorage.getItem("user");
+      const userObj = JSON.parse(user!);
+      const res = await fetch(`/api/student/classes?studentId=${userObj._id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await res.json();
+      setClasses(data.classes);
+      // Merge all recentAttendanceRecords
+      const mergedAttendance = data.classes
+        .flatMap((classItem: Class) => classItem.recentAttendanceRecords)
+        .reduce((acc: any, record: any) => {
+          const existing = acc.find((item) => item.date === record.date);
+          if (existing) {
+            existing.count++;
+          } else {
+            acc.push({ date: record.date, count: 1 });
+          }
+          return acc;
+        }, []);
+
+      // Sort the array by date (optional)
+      mergedAttendance.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      console.log("values=", mergedAttendance);
+      setheatmaparray(mergedAttendance ?? []);
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create class");
+      }
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const user = sessionStorage.getItem("user");
+    if (user) {
+      const userObj = JSON.parse(user);
+      setUser(userObj);
+    }
+    getClasses();
+  }, []);
 
   const announcements: Announcement[] = [
     {
@@ -75,12 +114,9 @@ function App() {
     return "text-green-500";
   };
 
-  const calculateAttendancePercentage = (attended: number, total: number) => {
-    return Math.round((attended / total) * 100);
-  };
-
   return (
     <div className="p-8">
+      {Loading && <Loader />}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Classes Overview */}
         <div className="bg-white p-6 rounded-xl shadow-sm">
@@ -90,22 +126,21 @@ function App() {
           </div>
           <div className="space-y-4">
             {classes.map((classItem) => {
-              const attendancePercentage = calculateAttendancePercentage(
-                classItem.attendedClasses,
-                classItem.totalClasses
-              );
               return (
                 <div
-                  key={classItem.id}
+                  key={classItem._id}
                   className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                  onClick={() => {
+                    router.push(`/student/classes/${classItem._id}`);
+                  }}
                 >
                   <div>
                     <h3 className="font-medium">{classItem.name}</h3>
                     <p className="text-sm text-gray-500">{classItem.teacher}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`font-semibold ${getAttendanceColor(attendancePercentage)}`}>
-                      {attendancePercentage}%
+                    <span className={`font-semibold ${getAttendanceColor(Number(classItem.attendanceRate))}`}>
+                      {classItem.attendanceRate}%
                     </span>
                     <ChevronRight className="w-4 h-4 text-gray-400" />
                   </div>
@@ -122,14 +157,9 @@ function App() {
             <Calendar className="w-5 h-5 text-gray-400" />
           </div>
           <CalendarHeatmap
-            startDate={new Date("2024-01-01")}
-            endDate={new Date("2024-12-31")}
-            values={[
-              { date: "2024-03-01", count: 1 },
-              { date: "2024-03-03", count: 1 },
-              { date: "2024-03-05", count: 1 },
-              { date: "2024-03-07", count: 1 },
-            ]}
+            startDate={new Date("2025-01-01")}
+            endDate={new Date("2025-12-31")}
+            values={heatmaparray}
             classForValue={(value) => {
               if (!value) return "color-empty";
               return `color-scale-${value.count}`;

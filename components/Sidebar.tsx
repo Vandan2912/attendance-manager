@@ -33,7 +33,7 @@ const Sidebar = () => {
       : [
           { icon: LayoutDashboard, label: "Dashboard", id: "dashboard", url: "/student/dashboard" },
           { icon: BookOpen, label: "My Classes", id: "classes", url: "/student/classes" },
-          { icon: Calendar, label: "Attendance", id: "attendance" },
+          // { icon: Calendar, label: "Attendance", id: "attendance" },
           { icon: MessageSquare, label: "Announcements", id: "announcements", url: "/student/announcements" },
           { icon: User, label: "Profile", id: "profile", url: "/student/profile" },
         ];
