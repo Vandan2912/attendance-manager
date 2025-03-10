@@ -2,10 +2,13 @@
 import React, { useEffect, useState } from "react";
 import { Users, Bell, AlertCircle, Plus, UserPlus, Upload, PieChart } from "lucide-react";
 import "react-calendar-heatmap/dist/styles.css";
+import Loader from "@/components/Loader";
+import { toast } from "react-toastify";
 
 type UserRole = "STUDENT" | "TEACHER";
 
 interface Class {
+  _id: string;
   id: string;
   name: string;
   teacher: string;
@@ -14,8 +17,9 @@ interface Class {
   lastAttendance: string;
   totalStudents?: number;
   attendanceRate?: number;
+  description?: string;
+  students?: Student[];
 }
-
 interface Announcement {
   id: string;
   title: string;
@@ -33,43 +37,12 @@ interface Student {
 }
 
 function App() {
-  const [role, setRole] = useState<UserRole>("STUDENT");
+  const [user, setUser] = useState<any>();
+  const [className, setClassName] = useState("");
+  const [Loading, setLoading] = useState(false);
+  const [classes, setClasses] = useState<Class[]>([]);
 
   const [showAddClassModal, setShowAddClassModal] = useState(false);
-
-  // Mock data
-  const classes: Class[] = [
-    {
-      id: "1",
-      name: "Advanced Mathematics",
-      teacher: "Dr. Smith",
-      totalClasses: 78,
-      attendedClasses: 50,
-      lastAttendance: "2024-03-10",
-      totalStudents: 45,
-      attendanceRate: 85,
-    },
-    {
-      id: "2",
-      name: "Computer Science",
-      teacher: "Prof. Johnson",
-      totalClasses: 65,
-      attendedClasses: 60,
-      lastAttendance: "2024-03-11",
-      totalStudents: 38,
-      attendanceRate: 92,
-    },
-    {
-      id: "3",
-      name: "Physics",
-      teacher: "Dr. Brown",
-      totalClasses: 70,
-      attendedClasses: 45,
-      lastAttendance: "2024-03-09",
-      totalStudents: 42,
-      attendanceRate: 78,
-    },
-  ];
 
   const students: Student[] = [
     {
@@ -118,15 +91,74 @@ function App() {
     return "text-green-500";
   };
 
-  useEffect(() => {
-    const storedRole = sessionStorage.getItem("role") as UserRole;
-    if (storedRole) {
-      setRole(storedRole);
+  const getClasses = async () => {
+    try {
+      setLoading(true);
+      const user = sessionStorage.getItem("user");
+      let teacherId = "";
+      if (user) {
+        const userObj = JSON.parse(user);
+        teacherId = userObj._id;
+      }
+      const res = await fetch(`/api/teacher/classes`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", teacherId },
+      });
+
+      const data = await res.json();
+      setClasses(data.classes);
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create class");
+      }
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleClassAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const teacherId = user._id;
+      const res = await fetch("/api/teacher/classes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: className,
+          teacherId: teacherId,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        toast("Class created successfully!");
+        setShowAddClassModal(false);
+        getClasses();
+      } else {
+        throw new Error(data.error || "Failed to create class");
+      }
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const user = sessionStorage.getItem("user");
+    if (user) {
+      const userObj = JSON.parse(user);
+      setUser(userObj);
+    }
+    getClasses();
   }, []);
 
   return (
     <div>
+      {Loading && <Loader />}
       <div className="space-y-6 p-8">
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -269,22 +301,16 @@ function App() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-md">
             <h2 className="text-2xl font-bold mb-4">Create New Class</h2>
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleClassAdd}>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Class Name</label>
                 <input
                   type="text"
+                  value={className}
+                  onChange={(e) => setClassName(e.target.value)}
                   placeholder="Enter class name"
                   className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea
-                  placeholder="Enter class description"
-                  rows={3}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                ></textarea>
               </div>
               <div className="flex gap-4">
                 <button
@@ -295,7 +321,10 @@ function App() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowAddClassModal(false)}
+                  onClick={() => {
+                    setShowAddClassModal(false);
+                    setClassName("");
+                  }}
                   className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Cancel
