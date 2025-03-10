@@ -28,19 +28,30 @@ export async function POST(request: Request) {
       { new: true }
     );
 
-    // Update student documents
-    const data = await User.findOneAndUpdate(
+    console.log("studentEmail", studentEmail, updatedClass);
+    // ✅ Now also update the student's document to add the class ID & Name
+    const updatedStudent = await User.findOneAndUpdate(
       { email: studentEmail },
       {
-        $addToSet: { classes: updatedClass._id },
-      }
+        $addToSet: {
+          classes: {
+            classId: updatedClass._id,
+            className: updatedClass.name,
+          },
+        },
+      },
+      { new: true }
     );
+    console.log("✅ Student Updated:", updatedStudent);
+    if (!updatedStudent) {
+      return NextResponse.json({ error: "updatedStudent not found" }, { status: 404 });
+    }
 
     if (!updatedClass) {
       return NextResponse.json({ error: "Class not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ message: "Students added to class successfully", class: updatedClass, data });
+    return NextResponse.json({ message: "Students added to class successfully", class: updatedClass, updatedStudent });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Failed to add students to class" }, { status: 500 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Users, BookOpen, Clock, Calendar as CalendarIcon } from "lucide-react";
 import Link from "next/link";
+import { format } from "date-fns";
 
 interface AttendanceRecord {
   date: Date;
@@ -22,94 +23,71 @@ interface ClassDetails {
   teacher: string;
   totalStudents: number;
   totalClasses: number;
-  attendance: number;
+  attendanceRate: number;
   attendanceRecords: AttendanceRecord[];
 }
 
-const CLASSES: Record<string, ClassDetails> = {
-  math: {
-    id: "math",
-    name: "Advanced Mathematics",
-    teacher: "Dr. Smith",
-    totalStudents: 45,
-    totalClasses: 78,
-    attendance: 85,
-    attendanceRecords: [
-      {
-        date: new Date(2024, 2, 10),
-        status: "present",
-        topic: "Linear Algebra",
-        duration: "2 hours",
-      },
-      {
-        date: new Date(2024, 2, 8),
-        status: "present",
-        topic: "Calculus",
-        duration: "1.5 hours",
-      },
-      {
-        date: new Date(2024, 2, 6),
-        status: "absent",
-        topic: "Probability",
-        duration: "2 hours",
-      },
-    ],
-  },
-  cs: {
-    id: "cs",
-    name: "Computer Science",
-    teacher: "Prof. Johnson",
-    totalStudents: 38,
-    totalClasses: 65,
-    attendance: 92,
-    attendanceRecords: [
-      {
-        date: new Date(2024, 2, 11),
-        status: "present",
-        topic: "Data Structures",
-        duration: "2 hours",
-      },
-      {
-        date: new Date(2024, 2, 9),
-        status: "present",
-        topic: "Algorithms",
-        duration: "2 hours",
-      },
-    ],
-  },
-  physics: {
-    id: "physics",
-    name: "Physics",
-    teacher: "Dr. Brown",
-    totalStudents: 42,
-    totalClasses: 70,
-    attendance: 78,
-    attendanceRecords: [
-      {
-        date: new Date(2024, 2, 9),
-        status: "present",
-        topic: "Quantum Mechanics",
-        duration: "2 hours",
-      },
-      {
-        date: new Date(2024, 2, 7),
-        status: "absent",
-        topic: "Thermodynamics",
-        duration: "1.5 hours",
-      },
-    ],
-  },
+interface Class {
+  id: string;
+  name: string;
+  attendanceRate: number;
+  attendedSessionsResult: { _id: string }[];
+  recentAttendanceRecords: { date: string; present: boolean }[];
+  totalSessions: number;
+  totalStudents: number;
+  attendedSessions: number;
+}
+
+const defaultData = {
+  id: "",
+  name: "",
+  attendanceRate: 0,
+  attendedSessionsResult: [],
+  recentAttendanceRecords: [],
+  totalSessions: 0,
+  totalStudents: 0,
+  attendedSessions: 0,
 };
 
 export default function ClassDetailsPage() {
   const { id } = useParams();
-  const classDetails = CLASSES[id as string];
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
-  const attendanceDates = classDetails.attendanceRecords.reduce((acc, record) => {
-    acc[record.date.toISOString()] = record.status === "present" ? "present" : "absent";
-    return acc;
-  }, {} as Record<string, string>);
+  const [Loading, setLoading] = useState(false);
+  const [classDetails, setClassDetails] = useState<Class>(defaultData);
+  const [user, setUser] = useState<any>();
+
+  const getClasses = async () => {
+    try {
+      setLoading(true);
+      const user = sessionStorage.getItem("user");
+      const userObj = JSON.parse(user!);
+      const res = await fetch(`/api/student/classes/detail?studentId=${userObj._id}&classId=${id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await res.json();
+      setClassDetails(data);
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create class");
+      }
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const user = sessionStorage.getItem("user");
+    if (user) {
+      const userObj = JSON.parse(user);
+      setUser(userObj);
+    }
+    getClasses();
+  }, []);
+
+  console.log("classDetails", classDetails);
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
@@ -122,19 +100,18 @@ export default function ClassDetailsPage() {
         </Link>
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold">{classDetails.name}</h1>
-            <p className="text-muted-foreground mt-1">Taught by {classDetails.teacher}</p>
+            <h1 className="text-3xl font-bold">{classDetails?.name}</h1>
           </div>
           <Badge
             className={
-              classDetails.attendance >= 85
+              classDetails?.attendanceRate >= 85
                 ? "bg-green-500"
-                : classDetails.attendance >= 75
+                : classDetails?.attendanceRate >= 75
                 ? "bg-yellow-500"
                 : "bg-red-500"
             }
           >
-            {classDetails.attendance}% Attendance
+            {classDetails?.attendanceRate}% Attendance
           </Badge>
         </div>
       </div>
@@ -148,11 +125,17 @@ export default function ClassDetailsPage() {
             <CardContent>
               <Calendar
                 mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
+                // selected={selectedDate}
+                // onSelect={setSelectedDate}
                 modifiers={{
-                  present: (date) => attendanceDates[date.toISOString()] === "present",
-                  absent: (date) => attendanceDates[date.toISOString()] === "absent",
+                  present: (date) =>
+                    classDetails?.recentAttendanceRecords?.some(
+                      (item) => format(date, "yyyy-MM-dd") === item.date && item.present
+                    ),
+                  absent: (date) =>
+                    classDetails?.recentAttendanceRecords?.some(
+                      (item) => format(date, "yyyy-MM-dd") === item.date && !item.present
+                    ),
                 }}
                 modifiersStyles={{
                   present: { backgroundColor: "#22c55e", color: "white" },
@@ -169,17 +152,14 @@ export default function ClassDetailsPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {classDetails.attendanceRecords.map((record, index) => (
+                {classDetails?.recentAttendanceRecords?.map((record, index) => (
                   <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-muted">
                     <div className="flex items-center space-x-4">
-                      <Badge variant={record.status === "present" ? "default" : "destructive"}>
-                        {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                      <Badge variant={record.present ? "default" : "destructive"}>
+                        {record.present ? "Present" : "Absent"}
                       </Badge>
                       <div>
-                        <p className="font-medium">{record.topic}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {record.date.toLocaleDateString()} • {record.duration}
-                        </p>
+                        <p className="font-medium">{record.date}</p>
                       </div>
                     </div>
                   </div>
@@ -201,23 +181,21 @@ export default function ClassDetailsPage() {
                     <Users className="h-4 w-4 mr-2 text-muted-foreground" />
                     <span className="text-muted-foreground">Total Students</span>
                   </div>
-                  <span className="font-medium">{classDetails.totalStudents}</span>
+                  <span className="font-medium">{classDetails?.totalStudents}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <BookOpen className="h-4 w-4 mr-2 text-muted-foreground" />
                     <span className="text-muted-foreground">Total Classes</span>
                   </div>
-                  <span className="font-medium">{classDetails.totalClasses}</span>
+                  <span className="font-medium">{classDetails?.totalSessions}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <CalendarIcon className="h-4 w-4 mr-2 text-muted-foreground" />
                     <span className="text-muted-foreground">Classes Attended</span>
                   </div>
-                  <span className="font-medium">
-                    {classDetails.attendanceRecords.filter((r) => r.status === "present").length}
-                  </span>
+                  <span className="font-medium">{classDetails?.attendedSessions}</span>
                 </div>
               </div>
             </CardContent>

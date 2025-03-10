@@ -12,13 +12,9 @@ const attendanceSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
-  date: {
+  markedAt: {
     type: Date,
     required: true,
-  },
-  present: {
-    type: Boolean,
-    default: false,
   },
 });
 

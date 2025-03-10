@@ -1,9 +1,9 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface Class {
-  id: string;
+  _id: string;
   name: string;
   teacher: string;
   totalClasses: number;
@@ -26,72 +26,40 @@ interface Student {
 
 const page = () => {
   const router = useRouter();
+  const [Loading, setLoading] = useState(false);
+  const [classes, setClasses] = useState<Class[]>([]);
+  const [user, setUser] = useState<any>();
 
-  // Mock data
-  const classes: Class[] = [
-    {
-      id: "1",
-      name: "Advanced Mathematics",
-      teacher: "Dr. Smith",
-      totalClasses: 78,
-      attendedClasses: 50,
-      lastAttendance: "2024-03-10",
-      totalStudents: 45,
-      attendanceRate: 85,
-      description: "Advanced topics in calculus, linear algebra, and differential equations.",
-      students: [
-        {
-          id: "1",
-          name: "Alice Johnson",
-          email: "alice@example.com",
-          attendanceRate: 92,
-          lastAttendance: "2024-03-11",
-          enrollmentDate: "2024-01-15",
-        },
-        {
-          id: "2",
-          name: "Bob Smith",
-          email: "bob@example.com",
-          attendanceRate: 68,
-          lastAttendance: "2024-03-10",
-          enrollmentDate: "2024-01-15",
-        },
-      ],
-    },
-    {
-      id: "2",
-      name: "Computer Science",
-      teacher: "Prof. Johnson",
-      totalClasses: 65,
-      attendedClasses: 60,
-      lastAttendance: "2024-03-11",
-      totalStudents: 38,
-      attendanceRate: 50,
-      description: "Introduction to programming concepts and algorithms.",
-      students: [
-        {
-          id: "3",
-          name: "Carol White",
-          email: "carol@example.com",
-          attendanceRate: 88,
-          lastAttendance: "2024-03-11",
-          enrollmentDate: "2024-01-20",
-        },
-      ],
-    },
-    {
-      id: "3",
-      name: "Physics",
-      teacher: "Dr. Brown",
-      totalClasses: 70,
-      attendedClasses: 45,
-      lastAttendance: "2024-03-09",
-      totalStudents: 42,
-      attendanceRate: 78,
-      description: "Fundamentals of mechanics and thermodynamics.",
-      students: [],
-    },
-  ];
+  const getClasses = async () => {
+    try {
+      setLoading(true);
+      const user = sessionStorage.getItem("user");
+      const userObj = JSON.parse(user!);
+      const res = await fetch(`/api/student/classes?studentId=${userObj._id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await res.json();
+      setClasses(data.classes);
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create class");
+      }
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const user = sessionStorage.getItem("user");
+    if (user) {
+      const userObj = JSON.parse(user);
+      setUser(userObj);
+    }
+    getClasses();
+  }, []);
 
   return (
     <div className="space-y-6 p-8">
@@ -100,12 +68,12 @@ const page = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {classes.map((classItem) => (
+        {classes?.map((classItem) => (
           <div
-            key={classItem.id}
+            key={classItem._id}
             className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
             onClick={() => {
-              router.push("/student/classes/math");
+              router.push(`/student/classes/${classItem._id}`);
             }}
           >
             <div className="p-6">

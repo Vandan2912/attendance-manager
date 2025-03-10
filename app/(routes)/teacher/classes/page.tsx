@@ -39,12 +39,12 @@ interface Announcement {
 const page = () => {
   const [Loading, setLoading] = useState(false);
   const [classes, setClasses] = useState<Class[]>([]);
+  const [user, setUser] = useState<any>();
   const [showAddClassModal, setShowAddClassModal] = useState(false);
   const [showClassDetailModal, setShowClassDetailModal] = useState(false);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [className, setClassName] = useState("");
-  const [user, setUser] = useState<any>();
   const [studentEmail, setStudentEmail] = useState<string>("");
   const [students, setStudents] = useState<Student[]>([]);
 

@@ -22,8 +22,13 @@ const userSchema = new mongoose.Schema({
   },
   classes: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Class",
+      classId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Class",
+      },
+      className: {
+        type: String,
+      },
     },
   ],
   faceData: {
