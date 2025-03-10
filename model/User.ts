@@ -36,15 +36,15 @@ const userSchema = new mongoose.Schema({
   }, // Base64 encoded face recognition data
   department: {
     type: String,
-    required: true,
+    // required: true,
   },
   semester: {
     type: String,
-    required: true,
+    // required: true,
   },
   enrollmentYear: {
     type: String,
-    required: true,
+    // required: true,
   },
   createdAt: {
     type: Date,
