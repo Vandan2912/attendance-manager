@@ -25,9 +25,9 @@ export async function POST(request: Request) {
       password: hashedPassword,
       role,
       createdAt: new Date(),
-      department: "",
-      semester: "",
-      enrollmentYear: "",
+      department: "Computer Science",
+      semester: "6th sem",
+      enrollmentYear: "2020",
     });
 
     // Remove password from response
