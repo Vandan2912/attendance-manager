@@ -19,6 +19,8 @@ interface Class {
   attendanceRate?: number;
   description?: string;
   students?: Student[];
+  teacherName: string;
+  totalSessions: number;
 }
 interface Announcement {
   id: string;
@@ -41,32 +43,32 @@ function App() {
   const [className, setClassName] = useState("");
   const [Loading, setLoading] = useState(false);
   const [classes, setClasses] = useState<Class[]>([]);
-
+  const [students, setStudents] = useState<Student[]>([]);
   const [showAddClassModal, setShowAddClassModal] = useState(false);
 
-  const students: Student[] = [
-    {
-      id: "1",
-      name: "Alice Johnson",
-      email: "alice@example.com",
-      attendanceRate: 92,
-      lastAttendance: "2024-03-11",
-    },
-    {
-      id: "2",
-      name: "Bob Smith",
-      email: "bob@example.com",
-      attendanceRate: 68,
-      lastAttendance: "2024-03-10",
-    },
-    {
-      id: "3",
-      name: "Carol White",
-      email: "carol@example.com",
-      attendanceRate: 88,
-      lastAttendance: "2024-03-11",
-    },
-  ];
+  // const students: Student[] = [
+  //   {
+  //     id: "1",
+  //     name: "Alice Johnson",
+  //     email: "alice@example.com",
+  //     attendanceRate: 92,
+  //     lastAttendance: "2024-03-11",
+  //   },
+  //   {
+  //     id: "2",
+  //     name: "Bob Smith",
+  //     email: "bob@example.com",
+  //     attendanceRate: 68,
+  //     lastAttendance: "2024-03-10",
+  //   },
+  //   {
+  //     id: "3",
+  //     name: "Carol White",
+  //     email: "carol@example.com",
+  //     attendanceRate: 88,
+  //     lastAttendance: "2024-03-11",
+  //   },
+  // ];
 
   const announcements: Announcement[] = [
     {
@@ -106,7 +108,7 @@ function App() {
       });
 
       const data = await res.json();
-      setClasses(data.classes);
+      setClasses(data.classAttendanceRates);
       if (!res.ok) {
         throw new Error(data.error || "Failed to create class");
       }
@@ -146,6 +148,23 @@ function App() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // Fetch student data from backend API
+    try {
+      setLoading(true);
+      async function fetchStudents() {
+        const response = await fetch("/api/student");
+        const data = await response.json();
+        setStudents(data.splice(0, 3));
+      }
+      fetchStudents();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const user = sessionStorage.getItem("user");
@@ -221,13 +240,11 @@ function App() {
                 >
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-medium">{classItem.name}</h3>
-                    <span className={`text-sm font-semibold ${getAttendanceColor(classItem.attendanceRate || 0)}`}>
-                      {classItem.attendanceRate}% attendance
-                    </span>
+                    <span>{classItem.totalSessions} classes</span>
                   </div>
                   <div className="flex items-center justify-between text-sm text-gray-500">
+                    <span></span>
                     <span>{classItem.totalStudents} students</span>
-                    <span>{classItem.totalClasses} classes</span>
                   </div>
                 </div>
               ))}
