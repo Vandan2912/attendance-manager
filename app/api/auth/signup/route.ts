@@ -25,21 +25,22 @@ export async function POST(request: Request) {
       password: hashedPassword,
       role,
       createdAt: new Date(),
+      department: "",
+      semester: "",
+      enrollmentYear: "",
     });
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user.toObject();
-
-    // Redirect students to photo capture page
-    if (role === "STUDENT") {
-      return NextResponse.redirect("/student/photo");
-    }
 
     return NextResponse.json(
       {
         message: "User registered successfully",
         user: userWithoutPassword,
         id: user._id,
+        name,
+        email,
+        role,
       },
       { status: 201 }
     );

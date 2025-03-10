@@ -39,10 +39,12 @@ function App() {
       body: JSON.stringify(formData),
     });
     const data = await res.json();
+    console.log("datadatadatadata", data);
     if (data.user) {
       document.cookie = `token=${data.id}; path=/`;
       sessionStorage.setItem("role", data.user.role);
       sessionStorage.setItem("user", JSON.stringify(data.user));
+
       if (data.user.role === "TEACHER") {
         router.push("/teacher/dashboard");
       } else {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import { Attendance } from "@/model/Attendance";
 import { Class } from "@/model/Class";
+import { User } from "@/model/User";
 
 export async function GET(request: Request) {
   try {
@@ -15,13 +16,15 @@ export async function GET(request: Request) {
     }
 
     // Fetch all classes the student is enrolled in
-    const classes: { _id: string; name: string; students: string[] }[] = await Class.find({ students: studentId })
+    const classes: { _id: string; name: string; students: string[]; teacherId: string }[] = await Class.find({
+      students: studentId,
+    })
       .lean()
-      .select("_id name students");
+      .select("_id name students teacherId");
 
     const classAttendanceRates = await Promise.all(
       classes.map(async (classItem) => {
-        console.log(classItem._id);
+        console.log("classItem", classItem);
 
         const totalSessionsResult = await Attendance.aggregate([
           {
@@ -68,6 +71,8 @@ export async function GET(request: Request) {
         // Calculate attendance rate
         const attendanceRate = totalSessions > 0 ? (attendedSessions / totalSessions) * 100 : 0;
 
+        const teacher = await User.findOne({ _id: classItem.teacherId.toString() });
+
         return {
           _id: classItem._id.toString(),
           name: classItem.name,
@@ -76,6 +81,7 @@ export async function GET(request: Request) {
           totalSessions,
           attendedSessionsResult,
           recentAttendanceRecords,
+          teacherName: teacher.name,
         };
       })
     );

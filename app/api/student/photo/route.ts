@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { spawn } from "child_process";
+import { User } from "@/model/User";
 
 export async function POST(request: Request) {
   try {
@@ -26,6 +27,9 @@ export async function POST(request: Request) {
         resolve(void 0);
       });
     });
+
+    // Update the student's record with the Base64 image
+    await User.findByIdAndUpdate(studentId, { faceData: image });
 
     return NextResponse.json({ message: "Photo uploaded and model trained successfully" });
   } catch (error) {

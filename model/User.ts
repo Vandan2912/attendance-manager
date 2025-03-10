@@ -34,6 +34,18 @@ const userSchema = new mongoose.Schema({
   faceData: {
     type: String,
   }, // Base64 encoded face recognition data
+  department: {
+    type: String,
+    required: true,
+  },
+  semester: {
+    type: String,
+    required: true,
+  },
+  enrollmentYear: {
+    type: String,
+    required: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

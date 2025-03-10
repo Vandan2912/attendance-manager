@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,28 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Camera, Mail, Phone, MapPin, Calendar, GraduationCap, User, BookOpen, Clock, Shield } from "lucide-react";
+
+interface Class {
+  _id: string;
+  name: string;
+  teacher: string;
+  totalClasses: number;
+  attendedClasses: number;
+  lastAttendance: string;
+  totalStudents?: number;
+  attendanceRate?: number;
+  description?: string;
+  // students?: Student[];
+}
+
+interface Student {
+  name: string;
+  email: string;
+  createdAt: string;
+  faceData: string;
+  role: string;
+  _id: string;
+}
 
 // Mock data - replace with actual data from your backend
 const studentData = {
@@ -43,10 +65,77 @@ const studentData = {
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    phone: studentData.phone,
-    address: studentData.address,
-    email: studentData.email,
+    department: studentData.department,
+    semester: studentData.semester,
+    enrollmentYear: studentData.enrollmentYear,
   });
+  const [user, setUser] = useState<any>();
+  const [Loading, setLoading] = useState(false);
+  const [classes, setClasses] = useState<Class[]>([]);
+  const [Profile, setProfile] = useState<Student>({
+    _id: "",
+    createdAt: "",
+    email: "",
+    faceData: "",
+    name: "",
+    role: "",
+  });
+
+  const getClasses = async () => {
+    try {
+      setLoading(true);
+      const user = sessionStorage.getItem("user");
+      const userObj = JSON.parse(user!);
+      const res = await fetch(`/api/student/classes?studentId=${userObj._id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await res.json();
+      setClasses(data.classes);
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create class");
+      }
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getProfile = async () => {
+    try {
+      setLoading(true);
+      const user = sessionStorage.getItem("user");
+      const userObj = JSON.parse(user!);
+      const res = await fetch(`/api/student/id?studentId=${userObj._id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await res.json();
+      setProfile(data);
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create class");
+      }
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const user = sessionStorage.getItem("user");
+    if (user) {
+      const userObj = JSON.parse(user);
+      setUser(userObj);
+    }
+    getClasses();
+    getProfile();
+  }, []);
+
+  console.log("Profile", Profile, classes);
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
@@ -56,9 +145,9 @@ export default function ProfilePage() {
           <div className="flex items-center gap-4">
             <div className="relative">
               <Avatar className="h-24 w-24">
-                <AvatarImage src={studentData.avatar} alt={studentData.name} />
+                <AvatarImage src={Profile.faceData} alt={Profile.name} />
                 <AvatarFallback>
-                  {studentData.name
+                  {Profile.name
                     .split(" ")
                     .map((n) => n[0])
                     .join("")}
@@ -69,17 +158,17 @@ export default function ProfilePage() {
               </Button>
             </div>
             <div>
-              <h1 className="text-2xl font-bold">{studentData.name}</h1>
-              <p className="text-muted-foreground">Student ID: {studentData.id}</p>
+              <h1 className="text-2xl font-bold">{Profile.name}</h1>
+              <p className="text-muted-foreground">Student ID: {Profile._id}</p>
               <div className="flex gap-2 mt-2">
                 <Badge variant="secondary">{studentData.department}</Badge>
                 <Badge variant="outline">{studentData.semester}</Badge>
               </div>
             </div>
           </div>
-          <Button onClick={() => setIsEditing(!isEditing)} variant={isEditing ? "destructive" : "default"}>
+          {/* <Button onClick={() => setIsEditing(!isEditing)} variant={isEditing ? "destructive" : "default"}>
             {isEditing ? "Cancel Editing" : "Edit Profile"}
-          </Button>
+          </Button> */}
         </div>
 
         {/* Main Content */}
@@ -106,14 +195,14 @@ export default function ProfilePage() {
                   <Label>Email</Label>
                   <div className="flex gap-2 items-center">
                     <Mail className="h-4 w-4 text-muted-foreground" />
-                    {isEditing ? (
+                    {/* {isEditing ? (
                       <Input
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       />
-                    ) : (
-                      <span>{studentData.email}</span>
-                    )}
+                    ) : ( */}
+                    <span>{studentData.email}</span>
+                    {/* )} */}
                   </div>
                 </div>
 
@@ -121,14 +210,7 @@ export default function ProfilePage() {
                   <Label>Phone Number</Label>
                   <div className="flex gap-2 items-center">
                     <Phone className="h-4 w-4 text-muted-foreground" />
-                    {isEditing ? (
-                      <Input
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      />
-                    ) : (
-                      <span>{studentData.phone}</span>
-                    )}
+                    <span>{studentData.phone}</span>
                   </div>
                 </div>
 
@@ -136,14 +218,7 @@ export default function ProfilePage() {
                   <Label>Address</Label>
                   <div className="flex gap-2 items-center">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
-                    {isEditing ? (
-                      <Input
-                        value={formData.address}
-                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      />
-                    ) : (
-                      <span>{studentData.address}</span>
-                    )}
+                    <span>{studentData.address}</span>
                   </div>
                 </div>
 
@@ -155,12 +230,6 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </div>
-
-              {isEditing && (
-                <div className="mt-6 flex justify-end">
-                  <Button onClick={() => setIsEditing(false)}>Save Changes</Button>
-                </div>
-              )}
             </Card>
           </TabsContent>
 
@@ -171,7 +240,14 @@ export default function ProfilePage() {
                   <Label>Department</Label>
                   <div className="flex gap-2 items-center">
                     <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                    {/* {isEditing ? (
+                      <Input
+                        value={formData.department}
+                        onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                      />
+                    ) : ( */}
                     <span>{studentData.department}</span>
+                    {/* )} */}
                   </div>
                 </div>
 
@@ -179,7 +255,14 @@ export default function ProfilePage() {
                   <Label>Current Semester</Label>
                   <div className="flex gap-2 items-center">
                     <Clock className="h-4 w-4 text-muted-foreground" />
+                    {/* {isEditing ? (
+                      <Input
+                        value={formData.semester}
+                        onChange={(e) => setFormData({ ...formData, semester: e.target.value })}
+                      />
+                    ) : ( */}
                     <span>{studentData.semester}</span>
+                    {/* )} */}
                   </div>
                 </div>
 
@@ -187,7 +270,14 @@ export default function ProfilePage() {
                   <Label>Enrollment Year</Label>
                   <div className="flex gap-2 items-center">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
+                    {/* {isEditing ? (
+                      <Input
+                        value={formData.enrollmentYear}
+                        onChange={(e) => setFormData({ ...formData, enrollmentYear: e.target.value })}
+                      />
+                    ) : ( */}
                     <span>{studentData.enrollmentYear}</span>
+                    {/* )} */}
                   </div>
                 </div>
 
@@ -199,6 +289,11 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </div>
+              {isEditing && (
+                <div className="mt-6 flex justify-end">
+                  <Button onClick={() => setIsEditing(false)}>Save Changes</Button>
+                </div>
+              )}
             </Card>
           </TabsContent>
 
