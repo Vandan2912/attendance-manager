@@ -32,7 +32,7 @@ const Header = () => {
   }, []);
 
   return (
-    <header className="bg-white shadow-sm">
+    <header className="bg-white shadow-sm sticky top-0 right-0 z-[10]" style={{ width: "calc(100% - 0rem)" }}>
       <div className="flex items-center justify-between px-8 py-4">
         <div className="flex items-center gap-4">
           <div className="relative">

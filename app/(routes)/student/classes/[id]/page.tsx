@@ -6,9 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Users, BookOpen, Clock, Calendar as CalendarIcon } from "lucide-react";
+import { ArrowLeft, Users, BookOpen, Calendar as CalendarIcon, Search } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
+import Loader from "@/components/Loader";
+import { Trash2, MoreVertical, Download, File, FileImage, File as FilePdf, FileVideo, Link2 } from "lucide-react";
 
 interface AttendanceRecord {
   date: Date;
@@ -49,12 +51,34 @@ const defaultData = {
   attendedSessions: 0,
 };
 
+interface Material {
+  _id: string;
+  fileName: string;
+  uploadedAt: string;
+  filePath: string;
+  uploadedBy: string;
+}
+// {
+//   id: "1",
+//   name: "Physics Notes Chapter 1",
+//   type: "pdf",
+//   size: "2.4 MB",
+//   uploadedAt: "2024-03-15",
+//   class: "Physics",
+//   url: "#",
+// },
+
 export default function ClassDetailsPage() {
   const { id } = useParams();
 
   const [Loading, setLoading] = useState(false);
   const [classDetails, setClassDetails] = useState<Class>(defaultData);
   const [user, setUser] = useState<any>();
+  const [materials, setMaterials] = useState<Material[]>([]);
+
+  const getFileIcon = () => {
+    return FilePdf;
+  };
 
   const getClasses = async () => {
     try {
@@ -78,6 +102,23 @@ export default function ClassDetailsPage() {
     }
   };
 
+  const fetchMaterials = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/teacher/material/upload?classId=${id}`);
+      const data = await response.json();
+      if (response.ok) {
+        setMaterials(data.materials);
+      } else {
+        console.error("Failed to fetch materials");
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching materials:", error);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const user = sessionStorage.getItem("user");
     if (user) {
@@ -85,12 +126,14 @@ export default function ClassDetailsPage() {
       setUser(userObj);
     }
     getClasses();
+    fetchMaterials();
   }, []);
 
-  console.log("classDetails", classDetails);
+  console.log("materials", materials);
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
+    <div className="p-8">
+      {Loading && <Loader />}
       <div className="mb-8">
         <Link href="/student/classes">
           <Button variant="ghost" className="mb-4">
@@ -164,6 +207,61 @@ export default function ClassDetailsPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Class Material</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-white rounded-xl shadow-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {materials.map((material) => {
+                    const FileIcon = getFileIcon();
+                    return (
+                      <div
+                        key={material._id}
+                        className="p-4 border border-gray-200 rounded-lg hover:border-purple-200 transition-colors group"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-purple-50 rounded-lg">
+                              <FileIcon className="w-6 h-6 text-purple-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-gray-900">{material.fileName}</h4>
+                              <p className="text-sm text-gray-500">
+                                {new Date(material.uploadedAt)
+                                  .toLocaleString("en-GB", {
+                                    day: "2-digit",
+                                    month: "short",
+                                    year: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })
+                                  .replace(",", "")}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 flex gap-2">
+                          <a
+                            target="_blank"
+                            href={material.filePath}
+                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors"
+                          >
+                            <Download className="w-4 h-4" />
+                            Download
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </CardContent>
           </Card>

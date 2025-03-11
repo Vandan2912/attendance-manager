@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Calendar, Search, UserPlus, X, Trash2, Mail, Phone, Clock, XCircle } from "lucide-react";
+import { Calendar, Search, UserPlus, X, Trash2, Mail, Phone, Clock, XCircle, Eye } from "lucide-react";
 import { toast } from "react-toastify";
 
 interface Student {
@@ -9,6 +9,13 @@ interface Student {
   email: string;
   createdAt: string;
   role: string;
+}
+
+interface FormData {
+  name: string;
+  email: string;
+  password: string;
+  role: "STUDENT" | "TEACHER";
 }
 
 function App() {
@@ -20,6 +27,13 @@ function App() {
   const [selectedStudentClasses, setSelectedStudentClasses] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [formData, setFormData] = useState<FormData>({
+    name: "",
+    email: "",
+    password: "",
+    role: "STUDENT",
+  });
+  const [showPassword, setShowPassword] = useState(false);
 
   // // Mock student data
   // const students: Student[] = [
@@ -138,6 +152,37 @@ function App() {
       console.error("Error deleting student:", error);
       toast("An error occurred while deleting the student");
     }
+  };
+
+  const handleAddStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+    const data = await res.json();
+    console.log("datadatadatadata", data);
+    if (data.user) {
+      toast("Student added successfuly");
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        role: "STUDENT",
+      });
+    } else {
+      console.log(data.error);
+      toast(data.error);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
+    setFormData({
+      ...formData,
+      [e.target.name]: value,
+    });
   };
 
   useEffect(() => {
@@ -355,62 +400,61 @@ function App() {
       {showAddStudentModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">Add New Student</h2>
-              <button
-                onClick={() => setShowAddStudentModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X className="w-6 h-6 text-gray-500" />
-              </button>
-            </div>
-            <form className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <h2 className="text-2xl font-bold mb-4">Add New Student</h2>
+            <form onSubmit={handleAddStudent} className="space-y-4">
+              <div className="flex gap-4">
                 <input
                   type="text"
-                  placeholder="Enter student name"
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  name="name"
+                  placeholder="Full name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 rounded-lg bg-gray-100 text-black border-0 focus:ring-2 focus:ring-purple-500"
+                  required
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 rounded-lg bg-gray-100 text-black border-0 focus:ring-2 focus:ring-purple-500"
+                required
+              />
+
+              <div className="relative">
                 <input
-                  type="email"
-                  placeholder="Enter email address"
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 rounded-lg bg-gray-100 text-black border-0 focus:ring-2 focus:ring-purple-500"
+                  required
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                <input
-                  type="tel"
-                  placeholder="Enter phone number"
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Assign to Classes</label>
-                <select
-                  multiple
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
                 >
-                  <option value="math">Advanced Mathematics</option>
-                  <option value="physics">Physics</option>
-                  <option value="cs">Computer Science</option>
-                </select>
-                <p className="mt-1 text-sm text-gray-500">Hold Ctrl/Cmd to select multiple classes</p>
+                  <Eye className="w-5 h-5" />
+                </button>
               </div>
-              <div className="flex gap-4 pt-4">
+
+              <div className="flex gap-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 transition-colors"
+                  className="flex-1 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
                 >
                   Add Student
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowAddStudentModal(false)}
+                  onClick={() => {
+                    setShowAddStudentModal(false);
+                  }}
                   className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Cancel

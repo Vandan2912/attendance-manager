@@ -9,7 +9,7 @@ export default function RootLayout({
   return (
     <div className="min-h-screen bg-[#f0f2f5] flex">
       <Sidebar />
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 ">
         <Header />
         {children}
       </div>

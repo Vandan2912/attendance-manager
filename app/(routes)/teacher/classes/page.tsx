@@ -1,8 +1,10 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { ChevronRight, Plus, UserPlus, Upload, X, Trash2, Download } from "lucide-react";
+import React, { useCallback, useEffect, useState } from "react";
+import { ChevronRight, Plus, UserPlus, Upload, X, Trash2, Download, View } from "lucide-react";
 import { toast } from "react-toastify";
 import Loader from "@/components/Loader";
+import { useDropzone } from "react-dropzone";
+import { useRouter } from "next/navigation";
 
 interface Class {
   _id: string;
@@ -37,6 +39,7 @@ interface Announcement {
 }
 
 const page = () => {
+  const router = useRouter();
   const [Loading, setLoading] = useState(false);
   const [classes, setClasses] = useState<Class[]>([]);
   const [user, setUser] = useState<any>();
@@ -47,6 +50,8 @@ const page = () => {
   const [className, setClassName] = useState("");
   const [studentEmail, setStudentEmail] = useState<string>("");
   const [students, setStudents] = useState<Student[]>([]);
+  const [showUploadMaterialModal, setShowUploadMaterialModal] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,6 +173,49 @@ const page = () => {
     }
   };
 
+  const handleUpload = async () => {
+    if (!file) return toast.error("Please select a file.");
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("classId", selectedClass?._id);
+    formData.append("teacherId", user._id);
+
+    try {
+      const response = await fetch("/api/teacher/material/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        toast.success("Material uploaded successfully!");
+      } else {
+        toast.error(data.error || "Failed to upload material.");
+      }
+    } catch (error) {
+      toast.error("Error uploading material.");
+      console.error(error);
+    }
+  };
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    // Handle file upload logic here
+    console.log(acceptedFiles);
+    setFile(acceptedFiles[0]);
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "application/pdf": [".pdf"],
+      "image/*": [".png", ".jpg", ".jpeg"],
+      "video/*": [".mp4", ".webm"],
+      "application/msword": [".doc"],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+    },
+  });
+
   useEffect(() => {
     const user = sessionStorage.getItem("user");
     if (user) {
@@ -180,8 +228,6 @@ const page = () => {
   useEffect(() => {
     fetchStudents();
   }, [selectedClass]);
-
-  console.log("students", students);
 
   return (
     <div className="space-y-6 p-8">
@@ -416,12 +462,27 @@ const page = () => {
 
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Class Resources</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <button className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <button
+                    className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    onClick={() => setShowUploadMaterialModal(true)}
+                  >
                     <Upload className="w-5 h-5 text-gray-500" />
                     <div className="text-left">
                       <h4 className="font-medium">Upload Materials</h4>
                       <p className="text-sm text-gray-500">Share study resources</p>
+                    </div>
+                  </button>
+                  <button
+                    className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    onClick={() => {
+                      router.push(`/teacher/classes/${selectedClass._id}`);
+                    }}
+                  >
+                    <View className="w-5 h-5 text-gray-500" />
+                    <div className="text-left">
+                      <h4 className="font-medium">All Materials</h4>
+                      <p className="text-sm text-gray-500">Uploaded tudy resources</p>
                     </div>
                   </button>
                   <button className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
@@ -478,6 +539,108 @@ const page = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Student Modal */}
+      {/* {showUploadMaterialModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[51]">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold">Upload Material</h2>
+              <button
+                onClick={() => setShowUploadMaterialModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6 text-gray-500" />
+              </button>
+            </div>
+            <form className="space-y-4" onSubmit={handleAddStudent}>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <input
+                  type="email"
+                  placeholder="Enter email address"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  value={studentEmail}
+                  onChange={(e) => setStudentEmail(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-4 pt-4">
+                <button
+                  type="submit"
+                  className="flex-1 bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 transition-colors"
+                >
+                  upload
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowUploadMaterialModal(false)}
+                  className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )} */}
+
+      {/* Upload Modal */}
+      {showUploadMaterialModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-lg">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Upload Material</h2>
+              <button
+                onClick={() => setShowUploadMaterialModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <div
+                {...getRootProps()}
+                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                  isDragActive ? "border-purple-500 bg-purple-50" : "border-gray-300 hover:border-purple-500"
+                }`}
+              >
+                <input {...getInputProps()} />
+                <Upload className="w-12 h-12 text-purple-500 mx-auto mb-4" />
+                <p className="text-gray-600">
+                  {isDragActive ? "Drop the files here..." : "Drag & drop files here, or click to select files"}
+                </p>
+                <p className="text-sm text-gray-500 mt-2">Supports: PDF, Word, Images, Videos (Max 100MB)</p>
+              </div>
+
+              {/* <div>
+                {file && (
+                  <div className="flex items-center gap-4">
+                    <div className="p-2 bg-purple-50 rounded-lg">
+                      <FileIcon className="w-6 h-6 text-purple-600" />
+                      }
+              </div> */}
+
+              <div className="flex gap-4 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowUploadMaterialModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                  onClick={handleUpload}
+                >
+                  Upload
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

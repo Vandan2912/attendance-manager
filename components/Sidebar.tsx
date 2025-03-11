@@ -62,7 +62,7 @@ const Sidebar = () => {
 
   return (
     <div className="w-64 bg-white shadow-lg">
-      <div className="p-6">
+      <div className="p-6 fixed top-0">
         <div className="flex items-center gap-2 mb-8">
           {role === "STUDENT" ? (
             <GraduationCap className="w-8 h-8 text-purple-600" />
@@ -93,7 +93,7 @@ const Sidebar = () => {
         </nav>
       </div>
 
-      <div className="absolute bottom-0 w-64 p-4 border-t">
+      <div className="fixed bottom-0 w-64 p-4 border-t">
         <button
           className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
           onClick={handleLogout}
