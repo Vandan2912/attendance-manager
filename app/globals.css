@@ -373,3 +373,7 @@
     clip-path: inset(0 0 0 100%);
   }
 }
+
+nextjs-portal {
+  display: none;
+}
