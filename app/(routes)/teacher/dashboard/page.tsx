@@ -1,6 +1,18 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Users, Bell, AlertCircle, Plus, UserPlus, Upload, PieChart } from "lucide-react";
+import {
+  Users,
+  Bell,
+  AlertCircle,
+  Plus,
+  UserPlus,
+  Upload,
+  PieChart,
+  GraduationCap,
+  School,
+  ArrowRight,
+  Eye,
+} from "lucide-react";
 import "react-calendar-heatmap/dist/styles.css";
 import Loader from "@/components/Loader";
 import { toast } from "react-toastify";
@@ -38,6 +50,13 @@ interface Student {
   lastAttendance: string;
 }
 
+interface FormData {
+  name: string;
+  email: string;
+  password: string;
+  role: "STUDENT" | "TEACHER";
+}
+
 function App() {
   const [user, setUser] = useState<any>();
   const [className, setClassName] = useState("");
@@ -45,6 +64,14 @@ function App() {
   const [classes, setClasses] = useState<Class[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [showAddClassModal, setShowAddClassModal] = useState(false);
+  const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+  const [formData, setFormData] = useState<FormData>({
+    name: "",
+    email: "",
+    password: "",
+    role: "STUDENT",
+  });
+  const [showPassword, setShowPassword] = useState(false);
 
   // const students: Student[] = [
   //   {
@@ -149,6 +176,37 @@ function App() {
     }
   };
 
+  const handleAddStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+    const data = await res.json();
+    console.log("datadatadatadata", data);
+    if (data.user) {
+      toast("Student added successfuly");
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        role: "STUDENT",
+      });
+    } else {
+      console.log(data.error);
+      toast(data.error);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
+    setFormData({
+      ...formData,
+      [e.target.name]: value,
+    });
+  };
+
   useEffect(() => {
     // Fetch student data from backend API
     try {
@@ -194,7 +252,10 @@ function App() {
             </div>
           </button>
 
-          <button className="p-4 bg-blue-50 rounded-xl flex items-center gap-3 hover:bg-blue-100 transition-colors">
+          <button
+            className="p-4 bg-blue-50 rounded-xl flex items-center gap-3 hover:bg-blue-100 transition-colors"
+            onClick={() => setShowAddStudentModal(true)}
+          >
             <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
               <UserPlus className="w-6 h-6 text-white" />
             </div>
@@ -340,6 +401,76 @@ function App() {
                   type="button"
                   onClick={() => {
                     setShowAddClassModal(false);
+                    setClassName("");
+                  }}
+                  className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Student Modal */}
+      {showAddStudentModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+            <h2 className="text-2xl font-bold mb-4">Add New Student</h2>
+            <form onSubmit={handleAddStudent} className="space-y-4">
+              <div className="flex gap-4">
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Full name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 rounded-lg bg-gray-100 text-black border-0 focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+              </div>
+
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 rounded-lg bg-gray-100 text-black border-0 focus:ring-2 focus:ring-purple-500"
+                required
+              />
+
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 rounded-lg bg-gray-100 text-black border-0 focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                >
+                  <Eye className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                >
+                  Add Student
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddStudentModal(false);
                     setClassName("");
                   }}
                   className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-colors"

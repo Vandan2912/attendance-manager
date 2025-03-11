@@ -53,11 +53,7 @@ const page = () => {
     setLoading(true);
 
     try {
-      let teacherId = user.teacherId;
-      if (user) {
-        const userObj = JSON.parse(user);
-        teacherId = userObj._id;
-      }
+      const teacherId = user._id;
       const res = await fetch("/api/teacher/classes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -274,7 +270,7 @@ const page = () => {
                 <X className="w-6 h-6 text-gray-500" />
               </button>
             </div>
-            <form className="space-y-4" onSubmit={handleSubmit}>
+            <form className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Class Name</label>
                 <input
@@ -290,6 +286,7 @@ const page = () => {
               <div className="flex gap-4 pt-4">
                 <button
                   type="submit"
+                  onClick={handleSubmit}
                   className="flex-1 bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 transition-colors"
                 >
                   Add Class

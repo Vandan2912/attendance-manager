@@ -68,7 +68,7 @@ function App() {
         }, []);
 
       // Sort the array by date (optional)
-      mergedAttendance.sort((a: any, b: any) => new Date(a.date) - new Date(b.date));
+      mergedAttendance.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
       console.log("values=", mergedAttendance);
       setheatmaparray(mergedAttendance ?? []);
@@ -125,7 +125,7 @@ function App() {
             <Users className="w-5 h-5 text-gray-400" />
           </div>
           <div className="space-y-4">
-            {classes.map((classItem) => {
+            {classes?.map((classItem) => {
               return (
                 <div
                   key={classItem._id}

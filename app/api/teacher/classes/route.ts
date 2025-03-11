@@ -41,7 +41,7 @@ export async function GET(request: Request) {
           name: classItem.name,
           totalStudents: classItem.students.length,
           totalSessions,
-          teacherName: teacher.name,
+          teacherName: teacher?.name ?? "",
         };
       })
     );

@@ -117,6 +117,29 @@ function App() {
       setLoading(false);
     }
   }
+
+  const deleteStudent = async (studentId: string) => {
+    try {
+      const response = await fetch("/api/student/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        toast("Student deleted successfully");
+        // Update frontend state by removing the deleted student
+        setStudents((prevStudents) => prevStudents.filter((student) => student._id !== studentId));
+      } else {
+        toast(data.error || "Failed to delete student");
+      }
+    } catch (error) {
+      console.error("Error deleting student:", error);
+      toast("An error occurred while deleting the student");
+    }
+  };
+
   useEffect(() => {
     if (selectedStudent?._id) {
       fetchEnrolledClasses();
@@ -207,6 +230,7 @@ function App() {
                       onClick={(e) => {
                         e.stopPropagation();
                         // Handle delete
+                        deleteStudent(student._id);
                       }}
                       className="text-red-600 hover:text-red-900"
                     >
