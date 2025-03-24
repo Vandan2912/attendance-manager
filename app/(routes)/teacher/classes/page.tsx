@@ -1,6 +1,6 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
-import { ChevronRight, Plus, UserPlus, Upload, X, Trash2, Download, View } from "lucide-react";
+import { ChevronRight, Plus, UserPlus, Upload, X, Trash2, Download, View, FileIcon } from "lucide-react";
 import { toast } from "react-toastify";
 import Loader from "@/components/Loader";
 import { useDropzone } from "react-dropzone";
@@ -230,20 +230,20 @@ const page = () => {
   }, [selectedClass]);
 
   return (
-    <div className="space-y-6 p-8">
+    <div className="p-8 space-y-6">
       {Loading && <Loader />}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">My Classes</h1>
         <button
           onClick={() => setShowAddClassModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+          className="flex bg-purple-500 rounded-lg text-white gap-2 hover:bg-purple-600 items-center px-4 py-2 transition-colors"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="h-5 w-5" />
           Create New Class
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 md:grid-cols-2">
         {classes?.map((classItem) => {
           const tempClassObj = {
             ...classItem,
@@ -255,17 +255,17 @@ const page = () => {
           return (
             <div
               key={tempClassObj.id}
-              className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-white rounded-xl shadow-sm cursor-pointer hover:shadow-md overflow-hidden transition-shadow"
               onClick={() => {
                 setSelectedClass(tempClassObj);
                 setShowClassDetailModal(true);
               }}
             >
               <div className="p-6">
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-lg font-semibold mb-1">{tempClassObj.name}</h3>
-                    <p className="text-sm text-gray-500">{user.name}</p>
+                    <p className="text-gray-500 text-sm">{user.name}</p>
                   </div>
                   <span
                     className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -280,23 +280,23 @@ const page = () => {
                   </span>
                 </div>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex justify-between text-sm items-center">
                     <span className="text-gray-500">Total Students</span>
                     <span className="font-medium">{tempClassObj.students?.length ?? 0}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex justify-between text-sm items-center">
                     <span className="text-gray-500">Total Classes</span>
                     <span className="font-medium">{tempClassObj.totalClasses ?? 0}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex justify-between text-sm items-center">
                     <span className="text-gray-500">Last Active</span>
                     <span className="font-medium">{tempClassObj.lastAttendance ?? "-"}</span>
                   </div>
                 </div>
               </div>
-              <div className="px-6 py-4 bg-gray-50 flex justify-between items-center">
-                <span className="text-sm text-gray-600">Click to manage class</span>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
+              <div className="flex bg-gray-50 justify-between items-center px-6 py-4">
+                <span className="text-gray-600 text-sm">Click to manage class</span>
+                <ChevronRight className="h-5 text-gray-400 w-5" />
               </div>
             </div>
           );
@@ -305,25 +305,25 @@ const page = () => {
 
       {/* Add Class Modal */}
       {showAddClassModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-4">
+        <div className="flex bg-black/50 justify-center p-4 fixed inset-0 items-center z-50">
+          <div className="bg-white p-6 rounded-xl w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">Add New Class</h2>
               <button
                 onClick={() => setShowAddClassModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                <X className="w-6 h-6 text-gray-500" />
+                <X className="h-6 text-gray-500 w-6" />
               </button>
             </div>
             <form className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Class Name</label>
+                <label className="text-gray-700 text-sm block font-medium mb-1">Class Name</label>
                 <input
                   name="name"
                   type="text"
                   placeholder="Enter class name"
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="border border-gray-200 rounded-lg w-full focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500 px-4 py-2"
                   value={className}
                   onChange={(e) => setClassName(e.target.value)}
                 />
@@ -333,14 +333,14 @@ const page = () => {
                 <button
                   type="submit"
                   onClick={handleSubmit}
-                  className="flex-1 bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 transition-colors"
+                  className="flex-1 bg-purple-500 rounded-lg text-white hover:bg-purple-600 py-2 transition-colors"
                 >
                   Add Class
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowAddStudentModal(false)}
-                  className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex-1 bg-gray-100 rounded-lg text-gray-700 hover:bg-gray-200 py-2 transition-colors"
                 >
                   Cancel
                 </button>
@@ -352,67 +352,67 @@ const page = () => {
 
       {/* Class Detail Modal */}
       {showClassDetailModal && selectedClass && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 -top-6">
-          <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b">
+        <div className="flex bg-black/50 justify-center p-4 -top-6 fixed inset-0 items-center z-50">
+          <div className="bg-white rounded-xl w-full max-h-[90vh] max-w-4xl overflow-hidden">
+            <div className="flex border-b justify-between p-6 items-center">
               <h2 className="text-2xl font-bold">{selectedClass.name}</h2>
               <button
                 onClick={() => setShowClassDetailModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                <X className="w-6 h-6 text-gray-500" />
+                <X className="h-6 text-gray-500 w-6" />
               </button>
             </div>
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="p-6 max-h-[calc(90vh-200px)] overflow-y-auto">
+              <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-3">
                 <div className="bg-purple-50 p-4 rounded-lg">
-                  <h4 className="text-sm text-gray-500 mb-1">Total Students</h4>
-                  <p className="text-2xl font-bold text-purple-600">{selectedClass.students?.length}</p>
+                  <h4 className="text-gray-500 text-sm mb-1">Total Students</h4>
+                  <p className="text-2xl text-purple-600 font-bold">{selectedClass.students?.length}</p>
                 </div>
                 <div className="bg-blue-50 p-4 rounded-lg">
-                  <h4 className="text-sm text-gray-500 mb-1">Total Classes</h4>
-                  <p className="text-2xl font-bold text-blue-600">{selectedClass.totalClasses}</p>
+                  <h4 className="text-gray-500 text-sm mb-1">Total Classes</h4>
+                  <p className="text-2xl text-blue-600 font-bold">{selectedClass.totalClasses}</p>
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg">
-                  <h4 className="text-sm text-gray-500 mb-1">Attendance Rate</h4>
-                  <p className="text-2xl font-bold text-green-600">{selectedClass.attendanceRate}%</p>
+                  <h4 className="text-gray-500 text-sm mb-1">Attendance Rate</h4>
+                  <p className="text-2xl text-green-600 font-bold">{selectedClass.attendanceRate}%</p>
                 </div>
               </div>
 
               <div className="mb-8">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold">Students</h3>
                   <button
                     onClick={() => setShowAddStudentModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                    className="flex bg-purple-500 rounded-lg text-white gap-2 hover:bg-purple-600 items-center px-4 py-2 transition-colors"
                   >
-                    <UserPlus className="w-5 h-5" />
+                    <UserPlus className="h-5 w-5" />
                     Add Student
                   </button>
                 </div>
-                <div className="bg-white rounded-lg border">
+                <div className="bg-white border rounded-lg">
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
                         <tr className="bg-gray-50">
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="text-gray-500 text-left text-xs font-medium px-6 py-3 tracking-wider uppercase">
                             Name
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="text-gray-500 text-left text-xs font-medium px-6 py-3 tracking-wider uppercase">
                             Email
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="text-gray-500 text-left text-xs font-medium px-6 py-3 tracking-wider uppercase">
                             Attendance
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="text-gray-500 text-left text-xs font-medium px-6 py-3 tracking-wider uppercase">
                             Last Active
                           </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="text-gray-500 text-right text-xs font-medium px-6 py-3 tracking-wider uppercase">
                             Actions
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-200">
+                      <tbody className="divide-gray-200 divide-y">
                         {students?.map((student) => (
                           <tr key={student.id} className="hover:bg-gray-50">
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -422,12 +422,12 @@ const page = () => {
                                     student.name
                                   )}&background=random`}
                                   alt={student.name}
-                                  className="w-8 h-8 rounded-full mr-3"
+                                  className="h-8 rounded-full w-8 mr-3"
                                 />
-                                <div className="text-sm font-medium text-gray-900">{student.name}</div>
+                                <div className="text-gray-900 text-sm font-medium">{student.name}</div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.email}</td>
+                            <td className="text-gray-500 text-sm px-6 py-4 whitespace-nowrap">{student.email}</td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span
                                 className={`px-2 py-1 text-xs font-medium rounded-full ${
@@ -441,15 +441,15 @@ const page = () => {
                                 {student.attendanceRate}%
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="text-gray-500 text-sm px-6 py-4 whitespace-nowrap">
                               {student.lastAttendance}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <td className="text-right text-sm font-medium px-6 py-4 whitespace-nowrap">
                               <button
                                 className="text-red-600 hover:text-red-900"
                                 onClick={() => handleRemoveStudent(student._id)}
                               >
-                                <Trash2 className="w-5 h-5" />
+                                <Trash2 className="h-5 w-5" />
                               </button>
                             </td>
                           </tr>
@@ -462,34 +462,34 @@ const page = () => {
 
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Class Resources</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <button
-                    className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex bg-gray-50 p-4 rounded-lg gap-3 hover:bg-gray-100 items-center transition-colors"
                     onClick={() => setShowUploadMaterialModal(true)}
                   >
-                    <Upload className="w-5 h-5 text-gray-500" />
+                    <Upload className="h-5 text-gray-500 w-5" />
                     <div className="text-left">
                       <h4 className="font-medium">Upload Materials</h4>
-                      <p className="text-sm text-gray-500">Share study resources</p>
+                      <p className="text-gray-500 text-sm">Share study resources</p>
                     </div>
                   </button>
                   <button
-                    className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex bg-gray-50 p-4 rounded-lg gap-3 hover:bg-gray-100 items-center transition-colors"
                     onClick={() => {
                       router.push(`/teacher/classes/${selectedClass._id}`);
                     }}
                   >
-                    <View className="w-5 h-5 text-gray-500" />
+                    <View className="h-5 text-gray-500 w-5" />
                     <div className="text-left">
                       <h4 className="font-medium">All Materials</h4>
-                      <p className="text-sm text-gray-500">Uploaded tudy resources</p>
+                      <p className="text-gray-500 text-sm">Uploaded tudy resources</p>
                     </div>
                   </button>
-                  <button className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <Download className="w-5 h-5 text-gray-500" />
+                  <button className="flex bg-gray-50 p-4 rounded-lg gap-3 hover:bg-gray-100 items-center transition-colors">
+                    <Download className="h-5 text-gray-500 w-5" />
                     <div className="text-left">
                       <h4 className="font-medium">Download Reports</h4>
-                      <p className="text-sm text-gray-500">Get attendance reports</p>
+                      <p className="text-gray-500 text-sm">Get attendance reports</p>
                     </div>
                   </button>
                 </div>
@@ -501,24 +501,24 @@ const page = () => {
 
       {/* Add Student Modal */}
       {showAddStudentModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-4">
+        <div className="flex bg-black/50 justify-center p-4 fixed inset-0 items-center z-50">
+          <div className="bg-white p-6 rounded-xl w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">Add New Student</h2>
               <button
                 onClick={() => setShowAddStudentModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                <X className="w-6 h-6 text-gray-500" />
+                <X className="h-6 text-gray-500 w-6" />
               </button>
             </div>
             <form className="space-y-4" onSubmit={handleAddStudent}>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <label className="text-gray-700 text-sm block font-medium mb-1">Email Address</label>
                 <input
                   type="email"
                   placeholder="Enter email address"
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="border border-gray-200 rounded-lg w-full focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500 px-4 py-2"
                   value={studentEmail}
                   onChange={(e) => setStudentEmail(e.target.value)}
                 />
@@ -526,14 +526,14 @@ const page = () => {
               <div className="flex gap-4 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 transition-colors"
+                  className="flex-1 bg-purple-500 rounded-lg text-white hover:bg-purple-600 py-2 transition-colors"
                 >
                   Add Student
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowAddStudentModal(false)}
-                  className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex-1 bg-gray-100 rounded-lg text-gray-700 hover:bg-gray-200 py-2 transition-colors"
                 >
                   Cancel
                 </button>
@@ -545,24 +545,24 @@ const page = () => {
 
       {/* Add Student Modal */}
       {/* {showUploadMaterialModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[51]">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-4">
+        <div className="flex bg-black/50 justify-center p-4 fixed inset-0 items-center z-[51]">
+          <div className="bg-white p-6 rounded-xl w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">Upload Material</h2>
               <button
                 onClick={() => setShowUploadMaterialModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                <X className="w-6 h-6 text-gray-500" />
+                <X className="h-6 text-gray-500 w-6" />
               </button>
             </div>
             <form className="space-y-4" onSubmit={handleAddStudent}>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <label className="text-gray-700 text-sm block font-medium mb-1">Email Address</label>
                 <input
                   type="email"
                   placeholder="Enter email address"
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="border border-gray-200 rounded-lg w-full focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500 px-4 py-2"
                   value={studentEmail}
                   onChange={(e) => setStudentEmail(e.target.value)}
                 />
@@ -570,14 +570,14 @@ const page = () => {
               <div className="flex gap-4 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 transition-colors"
+                  className="flex-1 bg-purple-500 rounded-lg text-white hover:bg-purple-600 py-2 transition-colors"
                 >
                   upload
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowUploadMaterialModal(false)}
-                  className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex-1 bg-gray-100 rounded-lg text-gray-700 hover:bg-gray-200 py-2 transition-colors"
                 >
                   Cancel
                 </button>
@@ -589,15 +589,15 @@ const page = () => {
 
       {/* Upload Modal */}
       {showUploadMaterialModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-lg">
-            <div className="flex items-center justify-between mb-6">
+        <div className="flex bg-black/50 justify-center p-4 fixed inset-0 items-center z-50">
+          <div className="bg-white p-6 rounded-xl w-full max-w-lg">
+            <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold">Upload Material</h2>
               <button
                 onClick={() => setShowUploadMaterialModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                <X className="w-6 h-6 text-gray-500" />
+                <X className="h-6 text-gray-500 w-6" />
               </button>
             </div>
 
@@ -609,32 +609,45 @@ const page = () => {
                 }`}
               >
                 <input {...getInputProps()} />
-                <Upload className="w-12 h-12 text-purple-500 mx-auto mb-4" />
+                <Upload className="h-12 text-purple-500 w-12 mb-4 mx-auto" />
                 <p className="text-gray-600">
                   {isDragActive ? "Drop the files here..." : "Drag & drop files here, or click to select files"}
                 </p>
-                <p className="text-sm text-gray-500 mt-2">Supports: PDF, Word, Images, Videos (Max 100MB)</p>
+                <p className="text-gray-500 text-sm mt-2">Supports: PDF, Word, Images, Videos (Max 100MB)</p>
               </div>
 
-              {/* <div>
+              <div>
                 {file && (
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 bg-purple-50 rounded-lg">
-                      <FileIcon className="w-6 h-6 text-purple-600" />
-                      }
-              </div> */}
+                  <div className="flex gap-4 items-center">
+                    <div className="bg-purple-50 p-2 rounded-lg">
+                      <FileIcon className="h-6 text-purple-600 w-6" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-gray-700 text-sm font-medium">{file.name}</p>
+                      <p className="text-gray-500 text-xs">{file.size} bytes</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setFile(null)}
+                      className="bg-red-50 p-2 rounded-lg text-red-500 hover:bg-red-100 transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
 
               <div className="flex gap-4 pt-4">
                 <button
                   type="button"
                   onClick={() => setShowUploadMaterialModal(false)}
-                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex-1 bg-gray-100 rounded-lg text-gray-700 hover:bg-gray-200 px-4 py-2 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                  className="flex-1 bg-purple-500 rounded-lg text-white hover:bg-purple-600 px-4 py-2 transition-colors"
                   onClick={handleUpload}
                 >
                   Upload
