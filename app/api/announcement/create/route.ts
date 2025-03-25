@@ -49,16 +49,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Class ID, file, Teacher ID are required" }, { status: 400 });
     }
 
-    // ✅ Read File Buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    let filePath = "";
 
-    // ✅ Save File to /public/uploads
-    const fileName = `${Date.now()}-${file.name}`;
-    const filePath = `/uploads/${fileName}`;
-    const destination = path.join(process.cwd(), "public", "uploads", fileName);
+    if (file) {
+      // ✅ Read File Buffer
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
 
-    await writeFile(destination, buffer);
+      // ✅ Save File to /public/uploads
+      const fileName = `${Date.now()}-${file.name}`;
+      filePath = `/uploads/${fileName}`;
+      const destination = path.join(process.cwd(), "public", "uploads", fileName);
+
+      await writeFile(destination, buffer);
+    }
 
     const announcement = await Announcement.create({
       classId,

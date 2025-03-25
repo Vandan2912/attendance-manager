@@ -319,51 +319,55 @@ export default function AnnouncementsPage() {
                 <label className="text-sm font-medium">Content : </label>
                 <span>{selectedAnnouncement?.content}</span>
               </div>
-              <div>
-                <label className="text-sm font-medium">Attachments</label>
-                <div className="bg-white rounded-xl shadow-sm">
-                  <div className="grid grid-cols-1 gap-4">
-                    <div
-                      key={selectedAnnouncement?._id}
-                      className="border border-gray-200 p-4 rounded-lg group hover:border-purple-200 transition-colors"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex gap-3 items-center">
-                          <div className="bg-purple-50 p-2 rounded-lg">
-                            <File className="h-6 text-purple-600 w-6" />
-                          </div>
-                          <div>
-                            <h4 className="text-gray-900 font-medium">{selectedAnnouncement?.fileUrl?.substring(9)}</h4>
-                            <p className="text-gray-500 text-sm">
-                              {selectedAnnouncement?.createdAt
-                                ? format(new Date(selectedAnnouncement.createdAt), "MMM d, yyyy, h:mm a")
-                                : format(new Date(), "MMM d, yyyy, h:mm a")}
-                            </p>
+              {selectedAnnouncement?.fileUrl && (
+                <div>
+                  <label className="text-sm font-medium">Attachments</label>
+                  <div className="bg-white rounded-xl shadow-sm">
+                    <div className="grid grid-cols-1 gap-4">
+                      <div
+                        key={selectedAnnouncement?._id}
+                        className="border border-gray-200 p-4 rounded-lg group hover:border-purple-200 transition-colors"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex gap-3 items-center">
+                            <div className="bg-purple-50 p-2 rounded-lg">
+                              <File className="h-6 text-purple-600 w-6" />
+                            </div>
+                            <div>
+                              <h4 className="text-gray-900 font-medium">
+                                {selectedAnnouncement?.fileUrl?.substring(9)}
+                              </h4>
+                              <p className="text-gray-500 text-sm">
+                                {selectedAnnouncement?.createdAt
+                                  ? format(new Date(selectedAnnouncement.createdAt), "MMM d, yyyy, h:mm a")
+                                  : format(new Date(), "MMM d, yyyy, h:mm a")}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      <div className="flex gap-2 mt-4">
-                        <a
-                          target="_blank"
-                          href={selectedAnnouncement?.fileUrl}
-                          className="flex flex-1 bg-purple-50 justify-center rounded-lg text-purple-600 gap-2 hover:bg-purple-100 items-center px-3 py-2 transition-colors"
-                        >
-                          <Download className="h-4 w-4" />
-                          Download
-                        </a>
+                        <div className="flex gap-2 mt-4">
+                          <a
+                            target="_blank"
+                            href={selectedAnnouncement?.fileUrl}
+                            className="flex flex-1 bg-purple-50 justify-center rounded-lg text-purple-600 gap-2 hover:bg-purple-100 items-center px-3 py-2 transition-colors"
+                          >
+                            <Download className="h-4 w-4" />
+                            Download
+                          </a>
+                        </div>
                       </div>
                     </div>
                   </div>
+                  <button
+                    className="flex bg-red-50 justify-center p-2 rounded-lg text-red-600 w-full gap-2 hover:bg-red-50 items-center mt-3 transition-colors"
+                    onClick={() => deleteAnnouncement(selectedAnnouncement?._id ?? "")}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete Announcement
+                  </button>
                 </div>
-                <button
-                  className="flex bg-red-50 justify-center p-2 rounded-lg text-red-600 w-full gap-2 hover:bg-red-50 items-center mt-3 transition-colors"
-                  onClick={() => deleteAnnouncement(selectedAnnouncement?._id ?? "")}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Delete Announcement
-                </button>
-              </div>
+              )}
             </div>
           </div>
         </div>
