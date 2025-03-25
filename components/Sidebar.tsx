@@ -29,7 +29,7 @@ const Sidebar = () => {
           // { icon: Calendar, label: "Attendance", id: "attendance", url: "/teacher/attendance" },
           { icon: Calendar, label: "Attendance", id: "attendance", url: "/teacher/attend" },
           { icon: MessageSquare, label: "Announcements", id: "announcements", url: "/teacher/announcements" },
-          { icon: User, label: "Profile", id: "profile", url: "/teacher/profile" },
+          // { icon: User, label: "Profile", id: "profile", url: "/teacher/profile" },
         ]
       : [
           { icon: LayoutDashboard, label: "Dashboard", id: "dashboard", url: "/student/dashboard" },
@@ -62,13 +62,13 @@ const Sidebar = () => {
   }, []);
 
   return (
-    <div className="w-64 bg-white shadow-lg">
+    <div className="bg-white shadow-lg w-64">
       <div className="p-6 fixed top-0">
-        <div className="flex items-center gap-2 mb-8">
+        <div className="flex gap-2 items-center mb-8">
           {role === "STUDENT" ? (
-            <GraduationCap className="w-8 h-8 text-purple-600" />
+            <GraduationCap className="h-8 text-purple-600 w-8" />
           ) : (
-            <School className="w-8 h-8 text-purple-600" />
+            <School className="h-8 text-purple-600 w-8" />
           )}
           <h1 className="text-xl font-bold">SASSC</h1>
         </div>
@@ -87,19 +87,19 @@ const Sidebar = () => {
                 activeTab === item.id ? "bg-purple-50 text-purple-600" : "text-gray-600 hover:bg-gray-50"
               }`}
             >
-              <item.icon className="w-5 h-5" />
+              <item.icon className="h-5 w-5" />
               {item.label}
             </button>
           ))}
         </nav>
       </div>
 
-      <div className="fixed bottom-0 w-64 p-4 border-t">
+      <div className="border-t p-4 w-64 bottom-0 fixed">
         <button
-          className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+          className="flex rounded-lg text-gray-600 w-full gap-3 hover:bg-gray-50 items-center px-4 py-3 transition-colors"
           onClick={handleLogout}
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut className="h-5 w-5" />
           Logout
         </button>
       </div>

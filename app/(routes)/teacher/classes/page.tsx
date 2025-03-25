@@ -5,6 +5,17 @@ import { toast } from "react-toastify";
 import Loader from "@/components/Loader";
 import { useDropzone } from "react-dropzone";
 import { useRouter } from "next/navigation";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Class {
   _id: string;
@@ -135,17 +146,19 @@ const page = () => {
 
   async function fetchStudents() {
     try {
-      const response = await fetch("/api/teacher/by-ids", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentIds: selectedClass?.students }),
-      });
+      if (selectedClass?.students) {
+        const response = await fetch("/api/teacher/by-ids", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ studentIds: selectedClass?.students }),
+        });
 
-      const data = await response.json();
-      if (response.ok) {
-        setStudents(data.students);
-      } else {
-        console.error(data.error || "Failed to fetch students");
+        const data = await response.json();
+        if (response.ok) {
+          setStudents(data.students);
+        } else {
+          console.error(data.error || "Failed to fetch students");
+        }
       }
     } catch (error) {
       console.error(error);
@@ -215,6 +228,28 @@ const page = () => {
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
     },
   });
+
+  const handleDelete = async (id: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/teacher/classes/${id}`, { method: "DELETE" });
+      const data = await res.json();
+
+      if (data.success) {
+        toast.success("Class deleted successfully!");
+        setClasses(classes.filter((cls) => cls._id !== id));
+        setShowClassDetailModal(false);
+        setSelectedClass(null);
+      } else {
+        toast.error("Error deleting class!");
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Something went wrong!");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const user = sessionStorage.getItem("user");
@@ -355,7 +390,29 @@ const page = () => {
         <div className="flex bg-black/50 justify-center p-4 -top-6 fixed inset-0 items-center z-50">
           <div className="bg-white rounded-xl w-full max-h-[90vh] max-w-4xl overflow-hidden">
             <div className="flex border-b justify-between p-6 items-center">
-              <h2 className="text-2xl font-bold">{selectedClass.name}</h2>
+              <div className="flex justify-between gap-4 items-center">
+                <h2 className="text-2xl font-bold">{selectedClass.name}</h2>
+
+                <AlertDialog>
+                  <AlertDialogTrigger>
+                    <button
+                      type="button"
+                      className="flex bg-red-50 p-2 rounded-lg text-red-500 gap-2 hover:bg-red-100 items-center transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" /> Delete Class
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleDelete(selectedClass._id)}>Continue</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
               <button
                 onClick={() => setShowClassDetailModal(false)}
                 className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
