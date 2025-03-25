@@ -26,7 +26,8 @@ const Sidebar = () => {
           { icon: LayoutDashboard, label: "Dashboard", id: "dashboard", url: "/teacher/dashboard" },
           { icon: BookOpen, label: "My Classes", id: "classes", url: "/teacher/classes" },
           { icon: Users, label: "Students", id: "students", url: "/teacher/students" },
-          { icon: Calendar, label: "Attendance", id: "attendance", url: "/teacher/attendance" },
+          // { icon: Calendar, label: "Attendance", id: "attendance", url: "/teacher/attendance" },
+          { icon: Calendar, label: "Attendance", id: "attendance", url: "/teacher/attend" },
           { icon: MessageSquare, label: "Announcements", id: "announcements", url: "/teacher/announcements" },
           { icon: User, label: "Profile", id: "profile", url: "/teacher/profile" },
         ]

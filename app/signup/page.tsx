@@ -48,7 +48,8 @@ function App() {
       if (data.user.role === "TEACHER") {
         router.push("/teacher/dashboard");
       } else {
-        router.push("/student/photo");
+        // router.push("/student/photo");
+        router.push("/student/train");
       }
     } else {
       console.log(data.error);

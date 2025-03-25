@@ -76,16 +76,21 @@ export default function AnnouncementsPage() {
       toast.error("Please add all details");
       return;
     }
+
+    const formData = new FormData();
+    if (file) {
+      formData.append("file", file);
+      formData.append("fileUrl", `/uploads/${file?.name}`);
+    }
+    formData.append("classId", selectedClass);
+    formData.append("title", title);
+    formData.append("content", content);
+
     // Add announcement to the server
     fetch("/api/announcement/create", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        classId: selectedClass,
-        title: title,
-        content: content,
-        fileUrl: file?.name ? `/uploads/${file?.name}` : null,
-      }),
+      // headers: { "Content-Type": "multipart/form-data" },
+      body: formData,
     })
       .then((res) => res.json())
       .then((data) => {

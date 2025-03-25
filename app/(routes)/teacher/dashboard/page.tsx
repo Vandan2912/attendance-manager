@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Users,
   Bell,
@@ -12,10 +12,18 @@ import {
   School,
   ArrowRight,
   Eye,
+  FileIcon,
+  X,
 } from "lucide-react";
 import "react-calendar-heatmap/dist/styles.css";
 import Loader from "@/components/Loader";
 import { toast } from "react-toastify";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useDropzone } from "react-dropzone";
+import { Button } from "@/components/ui/button";
 
 type UserRole = "STUDENT" | "TEACHER";
 
@@ -72,30 +80,11 @@ function App() {
     role: "STUDENT",
   });
   const [showPassword, setShowPassword] = useState(false);
-
-  // const students: Student[] = [
-  //   {
-  //     id: "1",
-  //     name: "Alice Johnson",
-  //     email: "alice@example.com",
-  //     attendanceRate: 92,
-  //     lastAttendance: "2024-03-11",
-  //   },
-  //   {
-  //     id: "2",
-  //     name: "Bob Smith",
-  //     email: "bob@example.com",
-  //     attendanceRate: 68,
-  //     lastAttendance: "2024-03-10",
-  //   },
-  //   {
-  //     id: "3",
-  //     name: "Carol White",
-  //     email: "carol@example.com",
-  //     attendanceRate: 88,
-  //     lastAttendance: "2024-03-11",
-  //   },
-  // ];
+  const [file, setFile] = useState<File | null>(null);
+  const [selectedClass, setselectedClass] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
 
   const announcements: Announcement[] = [
     {
@@ -207,6 +196,65 @@ function App() {
     });
   };
 
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    // Handle file upload logic here
+    console.log(acceptedFiles);
+    setFile(acceptedFiles[0]);
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "application/pdf": [".pdf"],
+      "image/*": [".png", ".jpg", ".jpeg"],
+      "video/*": [".mp4", ".webm"],
+      "application/msword": [".doc"],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+    },
+  });
+
+  const addAnnouncement = () => {
+    // validate payload
+    if (selectedClass === "" || title === "" || content === "") {
+      toast.error("Please add all details");
+      return;
+    }
+
+    const formData = new FormData();
+    if (file) {
+      formData.append("file", file);
+      formData.append("fileUrl", `/uploads/${file?.name}`);
+    }
+    formData.append("classId", selectedClass);
+    formData.append("title", title);
+    formData.append("content", content);
+
+    // Add announcement to the server
+    fetch("/api/announcement/create", {
+      method: "POST",
+      // headers: { "Content-Type": "application/json" },
+      body: formData,
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          console.log(data.error);
+          toast.error("Failed to create announcement");
+          return;
+        }
+        setIsCreating(false);
+        setTitle("");
+        setContent("");
+        setFile(null);
+        setselectedClass("");
+        toast.success("Announcement created successfully");
+      })
+      .catch((err) => {
+        console.log(err);
+        toast.error("Failed to create announcement");
+      });
+  };
+
   useEffect(() => {
     // Fetch student data from backend API
     try {
@@ -238,7 +286,7 @@ function App() {
       {Loading && <Loader />}
       <div className="space-y-6 p-8">
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <button
             onClick={() => setShowAddClassModal(true)}
             className="p-4 bg-purple-50 rounded-xl flex items-center gap-3 hover:bg-purple-100 transition-colors"
@@ -265,23 +313,16 @@ function App() {
             </div>
           </button>
 
-          <button className="p-4 bg-green-50 rounded-xl flex items-center gap-3 hover:bg-green-100 transition-colors">
+          <button
+            className="p-4 bg-green-50 rounded-xl flex items-center gap-3 hover:bg-green-100 transition-colors"
+            onClick={() => setIsCreating(true)}
+          >
             <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
               <Upload className="w-6 h-6 text-white" />
             </div>
             <div className="text-left">
               <h3 className="font-medium">Upload Resources</h3>
               <p className="text-sm text-gray-500">Share study materials</p>
-            </div>
-          </button>
-
-          <button className="p-4 bg-orange-50 rounded-xl flex items-center gap-3 hover:bg-orange-100 transition-colors">
-            <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
-              <PieChart className="w-6 h-6 text-white" />
-            </div>
-            <div className="text-left">
-              <h3 className="font-medium">Analytics</h3>
-              <p className="text-sm text-gray-500">View reports</p>
             </div>
           </button>
         </div>
@@ -334,9 +375,9 @@ function App() {
                       <h3 className="font-medium">{student.name}</h3>
                       <p className="text-sm text-gray-500">{student.email}</p>
                     </div>
-                    <span className={`ml-auto text-sm font-semibold ${getAttendanceColor(student.attendanceRate)}`}>
+                    {/* <span className={`ml-auto text-sm font-semibold ${getAttendanceColor(student.attendanceRate)}`}>
                       {student.attendanceRate}%
-                    </span>
+                    </span> */}
                   </div>
                 </div>
               ))}
@@ -479,6 +520,117 @@ function App() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {isCreating && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-2xl">
+            <Card className="">
+              <CardHeader>
+                <CardTitle>Create New Announcement</CardTitle>
+                <CardDescription>Share important information with your class</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Title</label>
+                      <Input
+                        placeholder="Enter announcement title"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Class</label>
+                      <Select value={selectedClass} onValueChange={(e) => setselectedClass(e)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select class" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {classes.map((classItem: any) => (
+                            <SelectItem key={classItem._id} value={classItem._id}>
+                              {classItem.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Content</label>
+                    <Textarea
+                      placeholder="Write your announcement here..."
+                      className="min-h-[150px]"
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Attachments</label>
+                    {/* <div className="border-2 border-dashed p-4 rounded-lg text-center">
+                        <Button variant="outline" className="w-full">
+                          <Paperclip className="h-4 w-4 mr-2" />
+                          Add Files
+                        </Button>
+                      </div> */}
+
+                    <div className="space-y-6">
+                      <div
+                        {...getRootProps()}
+                        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                          isDragActive ? "border-purple-500 bg-purple-50" : "border-gray-300 hover:border-purple-500"
+                        }`}
+                      >
+                        <input {...getInputProps()} />
+                        <Upload className="h-12 text-purple-500 w-12 mb-4 mx-auto" />
+                        <p className="text-gray-600">
+                          {isDragActive ? "Drop the files here..." : "Drag & drop files here, or click to select files"}
+                        </p>
+                        <p className="text-gray-500 text-sm mt-2">Supports: PDF, Word, Images, Videos (Max 100MB)</p>
+                      </div>
+
+                      <div>
+                        {file && (
+                          <div className="flex gap-4 items-center">
+                            <div className="bg-purple-50 p-2 rounded-lg">
+                              <FileIcon className="h-6 text-purple-600 w-6" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-gray-700 text-sm font-medium">{file.name}</p>
+                              <p className="text-gray-500 text-xs">{file.size} bytes</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setFile(null)}
+                              className="bg-red-50 p-2 rounded-lg text-red-500 hover:bg-red-100 transition-colors"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="outline" onClick={() => setIsCreating(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      className="bg-purple-600 hover:bg-purple-700"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        addAnnouncement();
+                      }}
+                    >
+                      Publish Announcement
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
           </div>
         </div>
       )}
