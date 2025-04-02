@@ -11,6 +11,7 @@ const FaceRecognition = () => {
   const [studentName, setStudentName] = useState("Unknown");
   const [mood, setMood] = useState("Neutral");
   const [isCallingAPI, setIsCallingAPI] = useState(false);
+  const intervalId = useRef<NodeJS.Timeout | null>(null); // Track interval
 
   useEffect(() => {
     const startVideo = async () => {
@@ -102,7 +103,15 @@ const FaceRecognition = () => {
       };
       getAttendance();
 
-      setInterval(async () => {
+      if (!videoRef.current || !canvasRef.current) return;
+
+      // Clear any existing interval
+      if (intervalId.current) {
+        clearInterval(intervalId.current);
+      }
+
+      // Start a new interval
+      intervalId.current = setInterval(() => {
         getAttendance();
       }, 4000);
     };

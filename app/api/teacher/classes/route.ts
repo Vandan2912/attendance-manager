@@ -16,8 +16,6 @@ export async function GET(request: Request) {
 
     const classAttendanceRates = await Promise.all(
       classes.map(async (classItem) => {
-        console.log("classItem", classItem);
-
         const totalSessionsResult = await Attendance.aggregate([
           {
             $match: {

@@ -5,6 +5,13 @@ import { useState, useEffect } from "react";
 const TrainFace = () => {
   const [images, setImages] = useState<File[]>([]);
   const [status, setStatus] = useState("");
+  const [user, setUser] = useState<any>();
+
+  useEffect(() => {
+    const user = sessionStorage.getItem("user");
+    const userObj = JSON.parse(user!);
+    setUser(userObj);
+  }, []);
 
   useEffect(() => {
     const loadModels = async () => {
@@ -40,7 +47,7 @@ const TrainFace = () => {
       // Send descriptors to the backend
       const response = await fetch("/api/train-face", {
         method: "POST",
-        body: JSON.stringify({ descriptors: faceDescriptors, email: "vandan@gmail.com" }),
+        body: JSON.stringify({ descriptors: faceDescriptors, email: user.email }),
         headers: { "Content-Type": "application/json" },
       });
 

@@ -17,15 +17,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Face descriptor required" }, { status: 400 });
     }
 
-    const storedStudents = await User.find({ role: "TEACHER", faceData: { $ne: null } });
+    const storedStudents = (await User.find({ role: "STUDENT", faceData: { $ne: null } })).filter(
+      (item) => item.faceData !== ""
+    );
 
     let bestMatch = { name: "Unknown", distance: 1.0, student: null, msg: "", error: "" };
     for (const student of storedStudents) {
       const storedDescriptor = new Float32Array(JSON.parse(student?.faceData)[0]?.descriptor);
       const descriptorArray: number[] = Object.values(descriptor); // Convert object to array
 
-      console.log("New descriptor length:", descriptorArray.length);
-      console.log("Stored descriptor length:", storedDescriptor.length);
+      // console.log("New descriptor length:", descriptorArray.length);
+      // console.log("Stored descriptor length:", storedDescriptor.length);
 
       if (descriptorArray.length !== storedDescriptor.length) {
         console.warn("⚠️ Mismatch in descriptor lengths. Skipping this comparison.");
@@ -48,6 +50,7 @@ export async function POST(request: Request) {
             $lt: endOfDay,
           },
         });
+
         if (attend) {
           bestMatch = {
             ...bestMatch,
@@ -57,6 +60,7 @@ export async function POST(request: Request) {
           };
           continue;
         }
+
         // check if student in class
         const classData = await Class.findOne({ _id: id, students: student._id });
         if (!classData) {
@@ -74,6 +78,7 @@ export async function POST(request: Request) {
           distance,
           student: student,
           msg: `Attendance marked for ${student.name}`,
+          error: "",
         };
         //update attendance
         await Attendance.create({
